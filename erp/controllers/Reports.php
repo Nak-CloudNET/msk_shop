@@ -14443,7 +14443,8 @@ class Reports extends MY_Controller
     }
 	//Export xls and pdf in Sales_Detail_Report in Sales Report
 function salesDetail_actions(){
-    if(!empty($_POST['val'])){
+	
+    
         if($this->input->post('form_action') == 'export_excel' || $this->input->post('form_action') == 'export_pdf'){
             $this->load->library('excel');
             $this->excel->setActiveSheetIndex(0);
@@ -14534,228 +14535,442 @@ function salesDetail_actions(){
             INNER JOIN erp_return_items ON erp_return_sales.id = erp_return_items.return_id
             GROUP BY
             erp_return_sales.id,reference_no";  
+			if($_POST['val']){
+				foreach ($_POST['val'] as $id) {
+					$sales = $this->db->query("SELECT * FROM ({$sql1} UNION {$sql2}) AS TEMP WHERE id = $id ORDER BY id DESC
+						LIMIT {$config['ob_set']},{$config['per_page']} ")->result();
+					foreach($sales as $key => $sale){
 
-            foreach ($_POST['val'] as $id) {   
-                $sales = $this->db->query("SELECT * FROM ({$sql1} UNION {$sql2}) AS TEMP WHERE id = $id ORDER BY id DESC
-                    LIMIT {$config['ob_set']},{$config['per_page']} ")->result();
+						$table_return_items = "erp_return_items"; 
+						$table_sale_items = "erp_sale_items";
 
-                    // if(count($sales) > 0){
+						$sql = "SELECT
+						erp_sale_items.id,
+						erp_sale_items.sale_id,
+						erp_sale_items.category_id,
+						erp_sale_items.product_id,
+						erp_sale_items.product_code,
+						erp_sale_items.product_name,
+						erp_sale_items.net_unit_price,
+						erp_sale_items.unit_price,
+						erp_sale_items.unit_cost,
+						erp_sale_items.quantity,
+						erp_sale_items.warehouse_id,
+						erp_sale_items.discount,
+						erp_sale_items.item_discount,
+						erp_sale_items.subtotal,
+						erp_sale_items.item_tax,
+						(CASE WHEN erp_products.unit = 0 THEN erp_products.unit ELSE erp_units.name END) as unit
+						FROM ";
 
-                foreach($sales as $key => $sale){
+						$sales_detail = $this->db->query("{$sql}{$table_sale_items} AS erp_sale_items
+							LEFT JOIN `erp_products` ON `erp_products`.`id` = `erp_sale_items`.`product_id`
+							LEFT JOIN `erp_units` ON `erp_units`.`id` = `erp_products`.`unit`
+							WHERE erp_sale_items.sale_id={$sale->id} GROUP BY id")->result();
 
-                    $table_return_items = "erp_return_items"; 
-                    $table_sale_items = "erp_sale_items";
+						$sales_detail_returned = $this->db->query("{$sql}{$table_return_items} AS erp_sale_items
+							LEFT JOIN `erp_products` ON `erp_products`.`id` = `erp_sale_items`.`product_id`
+							LEFT JOIN `erp_units` ON `erp_units`.`id` = `erp_products`.`unit`
+							WHERE erp_sale_items.return_id={$sale->id} GROUP BY id")->result();
 
-                    $sql = "SELECT
-                    erp_sale_items.id,
-                    erp_sale_items.sale_id,
-                    erp_sale_items.category_id,
-                    erp_sale_items.product_id,
-                    erp_sale_items.product_code,
-                    erp_sale_items.product_name,
-                    erp_sale_items.net_unit_price,
-                    erp_sale_items.unit_price,
-                    erp_sale_items.unit_cost,
-                    erp_sale_items.quantity,
-                    erp_sale_items.warehouse_id,
-                    erp_sale_items.discount,
-                    erp_sale_items.item_discount,
-                    erp_sale_items.subtotal,
-                    erp_sale_items.item_tax,
-                    (CASE WHEN erp_products.unit = 0 THEN erp_products.unit ELSE erp_units.name END) as unit
-                    FROM ";
+						$this->excel->getActiveSheet()->SetCellValue('A' . $row,$sale->reference_no.">>".$sale->customer.">>".date('d/M/Y h:i A', strtotime($sale->date)));
+						$this->excel->getActiveSheet()->mergeCells('A'.$row.':L'.$row);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
+						$row++;
+						$warehouse = "";
+						$total_item_tax = 0;
+						$total_discount = 0;
+						$total_quantity = 0;
+						$total_costs = 0;
+						$total_gross_margin = 0;
+						$total_amount = 0;
+						$sub_total = 0;
+						$total_amounts = 0;
+						$amount = 0;
+						$amounts = 0;
+						$total_overh = 0;
 
-                    $sales_detail = $this->db->query("{$sql}{$table_sale_items} AS erp_sale_items
-                        LEFT JOIN `erp_products` ON `erp_products`.`id` = `erp_sale_items`.`product_id`
-                        LEFT JOIN `erp_units` ON `erp_units`.`id` = `erp_products`.`unit`
-                        WHERE erp_sale_items.sale_id={$sale->id} GROUP BY id")->result();
-
-                    $sales_detail_returned = $this->db->query("{$sql}{$table_return_items} AS erp_sale_items
-                        LEFT JOIN `erp_products` ON `erp_products`.`id` = `erp_sale_items`.`product_id`
-                        LEFT JOIN `erp_units` ON `erp_units`.`id` = `erp_products`.`unit`
-                        WHERE erp_sale_items.return_id={$sale->id} GROUP BY id")->result();
-
-                    $this->excel->getActiveSheet()->SetCellValue('A' . $row,$sale->reference_no.">>".$sale->customer.">>".date('d/M/Y h:i A', strtotime($sale->date)));
-                    $this->excel->getActiveSheet()->mergeCells('A'.$row.':L'.$row);
-                    $this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
-                    $row++;
-                    $warehouse = "";
-                    $total_item_tax = 0;
-                    $total_discount = 0;
-                    $total_quantity = 0;
-                    $total_costs = 0;
-                    $total_gross_margin = 0;
-                    $total_amount = 0;
-                    $sub_total = 0;
-                    $total_amounts = 0;
-                    $amount = 0;
-                    $amounts = 0;
-                    $total_overh = 0;
-
-                    $sales_by_gls = $this->db->query("SELECT
-                        erp_gl_trans.sale_id,
-                        erp_gl_trans.customer_id,
-                        erp_gl_trans.biller_id,
-                        erp_gl_trans.tran_date,
-                        erp_gl_trans.reference_no,
-                        erp_gl_trans.description,
-                        erp_gl_trans.amount,
-                        erp_gl_trans.narrative,
-                        erp_gl_trans.tran_type,
-                        erp_gl_trans.account_code
-                        FROM
-                        erp_gl_trans
-                        INNER JOIN erp_sales ON erp_sales.id = erp_gl_trans.sale_id                                                                 
-                        WHERE erp_sales.id = {$sale->id}
-                        AND sectionid = 50
-                        GROUP BY reference_no
-                        ");
+						$sales_by_gls = $this->db->query("SELECT
+							erp_gl_trans.sale_id,
+							erp_gl_trans.customer_id,
+							erp_gl_trans.biller_id,
+							erp_gl_trans.tran_date,
+							erp_gl_trans.reference_no,
+							erp_gl_trans.description,
+							erp_gl_trans.amount,
+							erp_gl_trans.narrative,
+							erp_gl_trans.tran_type,
+							erp_gl_trans.account_code
+							FROM
+							erp_gl_trans
+							INNER JOIN erp_sales ON erp_sales.id = erp_gl_trans.sale_id                                                                 
+							WHERE erp_sales.id = {$sale->id}
+							AND sectionid = 50
+							GROUP BY reference_no
+							");
 
 
-                    if ($sale->type == 1) {
-                        foreach ($sales_detail as $sale_detail) {
-                            $unit = $sale_detail->variant ? $sale_detail->variant : $sale_detail->unit;
-                            $total_cost = $sale_detail->unit_cost * $sale_detail->quantity;
-                            $gross_margin = ($sale_detail->subtotal - $sale_detail->item_tax) - $total_cost;
-                            $sub_total = ($total_amount - $sale->order_discount) + $sale->order_tax + $total_item_tax + $sale->shipping;
+						if ($sale->type == 1) {
+							foreach ($sales_detail as $sale_detail) {
+								$unit = $sale_detail->variant ? $sale_detail->variant : $sale_detail->unit;
+								$total_cost = $sale_detail->unit_cost * $sale_detail->quantity;
+								$gross_margin = ($sale_detail->subtotal - $sale_detail->item_tax) - $total_cost;
+								$sub_total = ($total_amount - $sale->order_discount) + $sale->order_tax + $total_item_tax + $sale->shipping;
 
-                            $total_discount += $sale_detail->item_discount;
-                            $total_quantity += $sale_detail->quantity;
-                            $total_costs += $total_cost;
-                            $total_gross_margin += $gross_margin;
-                            $total_amount += $sale_detail->subtotal - $sale_detail->item_tax;
-                            $total_amounts += $sale_detail->subtotal - $sale_detail->item_tax;
-                            $total_item_tax += $sale_detail->item_tax;
-                            $amount = $total_amount - $sale->order_discount + $sale->shipping;
+								$total_discount += $sale_detail->item_discount;
+								$total_quantity += $sale_detail->quantity;
+								$total_costs += $total_cost;
+								$total_gross_margin += $gross_margin;
+								$total_amount += $sale_detail->subtotal - $sale_detail->item_tax;
+								$total_amounts += $sale_detail->subtotal - $sale_detail->item_tax;
+								$total_item_tax += $sale_detail->item_tax;
+								$amount = $total_amount - $sale->order_discount + $sale->shipping;
 
-                            $this->excel->getActiveSheet()->SetCellValue('A'. $row, "(".$sale_detail->product_name.")".$sale_detail->product_code);
-                            $this->excel->getActiveSheet()->SetCellValue('B'. $row, $sale->biller);
-                            $this->excel->getActiveSheet()->SetCellValue('C'. $row, $warehouses_arr[$sale_detail->warehouse_id]);
-                            $this->excel->getActiveSheet()->SetCellValue('D' .$row, $this->erp->formatMoney($sale_detail->unit_cost));
-                            $this->excel->getActiveSheet()->SetCellValue('E' .$row, $this->erp->formatMoney($sale_detail->unit_price));
-                            $this->excel->getActiveSheet()->SetCellValue('F' .$row, "(".$this->erp->formatMoney($sale_detail->item_tax).")");
-                            $this->excel->getActiveSheet()->SetCellValue('G'. $row, "(".$this->erp->formatMoney($sale_detail->item_discount).")");
-                            $this->excel->getActiveSheet()->SetCellValue('H'. $row, $this->erp->formatQuantity($sale_detail->quantity));
-                            $this->excel->getActiveSheet()->SetCellValue('I'. $row, $unit);
-                            $this->excel->getActiveSheet()->SetCellValue('J'. $row, $this->erp->formatMoney($total_cost));
-                            $this->excel->getActiveSheet()->SetCellValue('K'. $row, ($sale_detail->subtotal - $sale_detail->item_tax));
-                            $this->excel->getActiveSheet()->SetCellValue('L'. $row, $this->erp->formatMoney($gross_margin));
-                            $this->excel->getActiveSheet()->getStyle('B'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-                            $row++;
-                            // $this->erp->print_arrays($sales_by_gls);
-                            if ($sales_by_gls->num_rows() > 0) {
-                                $e_total = 0;
-                                $i_gross_margin = "";
-                                $this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("OVERHEAD"));
-                                foreach ($sales_by_gls->result() as $sales_by_gl) {
-                                    // $this->erp->print_arrays($sales_by_gl);
-                                    $e_total += $sales_by_gl->amount;
-                                    $e_amount = $this->erp->formatMoney($sales_by_gl->amount);
-                                    $d_gross_margin = ($total_gross_margin - $sale->order_discount + $sale->shipping) + (-1) * $e_total;
-                                    $e_sub_total = "(" . $this->erp->formatMoney(abs($e_total)) . ")";
-                                    $this->excel->getActiveSheet()->SetCellValue('A'. $row, $this->erp->hrld($sales_by_gl->tran_date));
-                                    $this->excel->getActiveSheet()->SetCellValue('B'. $row, $sales_by_gl->reference_no);
-                                    $this->excel->getActiveSheet()->SetCellValue('C'. $row, $sales_by_gl->description);
-                                    $this->excel->getActiveSheet()->SetCellValue('D'. $row, $e_amount);
-                                    $row++;
-                                }
-                                $total_overh += $e_total;
-                                $this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("subtotal"));
-                                $this->excel->getActiveSheet()->SetCellValue('B'. $row, $this->erp->formatMoney($e_total));
-                                $this->excel->getActiveSheet()->SetCellValue('D'. $row, $e_sub_total);
-                                $row++;
-                                $this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("total_gross_margin"));
-                                $this->excel->getActiveSheet()->SetCellValue('D'. $row, $this->erp->formatMoney($d_gross_margin));
+								$this->excel->getActiveSheet()->SetCellValue('A'. $row, "(".$sale_detail->product_name.")".$sale_detail->product_code);
+								$this->excel->getActiveSheet()->SetCellValue('B'. $row, $sale->biller);
+								$this->excel->getActiveSheet()->SetCellValue('C'. $row, $warehouses_arr[$sale_detail->warehouse_id]);
+								$this->excel->getActiveSheet()->SetCellValue('D' .$row, $this->erp->formatMoney($sale_detail->unit_cost));
+								$this->excel->getActiveSheet()->SetCellValue('E' .$row, $this->erp->formatMoney($sale_detail->unit_price));
+								$this->excel->getActiveSheet()->SetCellValue('F' .$row, "(".$this->erp->formatMoney($sale_detail->item_tax).")");
+								$this->excel->getActiveSheet()->SetCellValue('G'. $row, "(".$this->erp->formatMoney($sale_detail->item_discount).")");
+								$this->excel->getActiveSheet()->SetCellValue('H'. $row, $this->erp->formatQuantity($sale_detail->quantity));
+								$this->excel->getActiveSheet()->SetCellValue('I'. $row, $unit);
+								$this->excel->getActiveSheet()->SetCellValue('J'. $row, $this->erp->formatMoney($total_cost));
+								$this->excel->getActiveSheet()->SetCellValue('K'. $row, ($sale_detail->subtotal - $sale_detail->item_tax));
+								$this->excel->getActiveSheet()->SetCellValue('L'. $row, $this->erp->formatMoney($gross_margin));
+								$this->excel->getActiveSheet()->getStyle('B'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+								$row++;
+								
+								if ($sales_by_gls->num_rows() > 0) {
+									$e_total = 0;
+									$i_gross_margin = "";
+									$this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("OVERHEAD"));
+									foreach ($sales_by_gls->result() as $sales_by_gl) {
+										// $this->erp->print_arrays($sales_by_gl);
+										$e_total += $sales_by_gl->amount;
+										$e_amount = $this->erp->formatMoney($sales_by_gl->amount);
+										$d_gross_margin = ($total_gross_margin - $sale->order_discount + $sale->shipping) + (-1) * $e_total;
+										$e_sub_total = "(" . $this->erp->formatMoney(abs($e_total)) . ")";
+										$this->excel->getActiveSheet()->SetCellValue('A'. $row, $this->erp->hrld($sales_by_gl->tran_date));
+										$this->excel->getActiveSheet()->SetCellValue('B'. $row, $sales_by_gl->reference_no);
+										$this->excel->getActiveSheet()->SetCellValue('C'. $row, $sales_by_gl->description);
+										$this->excel->getActiveSheet()->SetCellValue('D'. $row, $e_amount);
+										$row++;
+									}
+									$total_overh += $e_total;
+									$this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("subtotal"));
+									$this->excel->getActiveSheet()->SetCellValue('B'. $row, $this->erp->formatMoney($e_total));
+									$this->excel->getActiveSheet()->SetCellValue('D'. $row, $e_sub_total);
+									$row++;
+									$this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("total_gross_margin"));
+									$this->excel->getActiveSheet()->SetCellValue('D'. $row, $this->erp->formatMoney($d_gross_margin));
 
-                            }
-                        }
-                    }else{
-                        foreach ($sales_detail_returned as $sale_detail_returned) {
-                            $unit = $sale_detail_returned->variant ? $sale_detail_returned->variant : $sale_detail_returned->unit;
-                            $total_cost = $sale_detail_returned->unit_cost * $sale_detail_returned->quantity;
-                            $gross_margin = ($sale_detail_returned->subtotal - $sale_detail_returned->item_tax) - $total_cost;
-                            $sub_total = ($total_amount - $sale->order_discount) + $sale->order_tax + $total_item_tax + $sale->shipping;
+								}
+							}
+						}else{
+							foreach ($sales_detail_returned as $sale_detail_returned) {
+								$unit = $sale_detail_returned->variant ? $sale_detail_returned->variant : $sale_detail_returned->unit;
+								$total_cost = $sale_detail_returned->unit_cost * $sale_detail_returned->quantity;
+								$gross_margin = ($sale_detail_returned->subtotal - $sale_detail_returned->item_tax) - $total_cost;
+								$sub_total = ($total_amount - $sale->order_discount) + $sale->order_tax + $total_item_tax + $sale->shipping;
 
-                            $total_discount += $sale_detail_returned->item_discount;
-                            $total_quantity += $sale_detail_returned->quantity;
-                            $total_costs += $total_cost;
-                            $total_gross_margin += $gross_margin;
-                            $total_amount += $sale_detail_returned->subtotal - $sale_detail_returned->item_tax;
-                            $total_item_tax += $sale_detail_returned->item_tax;
-                            $amount = $total_amount - $sale->order_discount + $sale->shipping;
-                            $amounts += $amount;
+								$total_discount += $sale_detail_returned->item_discount;
+								$total_quantity += $sale_detail_returned->quantity;
+								$total_costs += $total_cost;
+								$total_gross_margin += $gross_margin;
+								$total_amount += $sale_detail_returned->subtotal - $sale_detail_returned->item_tax;
+								$total_item_tax += $sale_detail_returned->item_tax;
+								$amount = $total_amount - $sale->order_discount + $sale->shipping;
+								$amounts += $amount;
 
-                            $this->excel->getActiveSheet()->SetCellValue('A'. $row, $sale_detail_returned->product_name.$sale_detail_returned->product_code);
-                            $this->excel->getActiveSheet()->SetCellValue('B'. $row, $sale->biller);
-                            $this->excel->getActiveSheet()->SetCellValue('C'. $row, $warehouses_arr[$sale_detail_returned->warehouse_id]);
-                            $this->excel->getActiveSheet()->SetCellValue('D'. $row, $this->erp->formatMoney($sale_detail_returned->unit_cost));
-                            $this->excel->getActiveSheet()->SetCellValue('E'. $row, $this->erp->formatMoney($sale_detail_returned->unit_price));
-                            $this->excel->getActiveSheet()->SetCellValue('F'. $row, $this->erp->formatMoney($sale_detail_returned->item_tax));
-                            $this->excel->getActiveSheet()->SetCellValue('G'. $row, $this->erp->formatMoney($sale_detail_returned->item_discount));
-                            $this->excel->getActiveSheet()->SetCellValue('H'. $row, $this->erp->formatQuantity($sale_detail_returned->quantity));
-                            $this->excel->getActiveSheet()->SetCellValue('I'. $row, $unit);
-                            $this->excel->getActiveSheet()->SetCellValue('J'. $row, $this->erp->formatMoney($total_cost));
-                            $this->excel->getActiveSheet()->SetCellValue('K'. $row, $this->erp->formatMoney($sale_detail_returned->subtotal - $sale_detail_returned->item_tax));
-                            $this->excel->getActiveSheet()->SetCellValue('L', $this->erp->formatMoney($gross_margin));
+								$this->excel->getActiveSheet()->SetCellValue('A'. $row, $sale_detail_returned->product_name.$sale_detail_returned->product_code);
+								$this->excel->getActiveSheet()->SetCellValue('B'. $row, $sale->biller);
+								$this->excel->getActiveSheet()->SetCellValue('C'. $row, $warehouses_arr[$sale_detail_returned->warehouse_id]);
+								$this->excel->getActiveSheet()->SetCellValue('D'. $row, $this->erp->formatMoney($sale_detail_returned->unit_cost));
+								$this->excel->getActiveSheet()->SetCellValue('E'. $row, $this->erp->formatMoney($sale_detail_returned->unit_price));
+								$this->excel->getActiveSheet()->SetCellValue('F'. $row, $this->erp->formatMoney($sale_detail_returned->item_tax));
+								$this->excel->getActiveSheet()->SetCellValue('G'. $row, $this->erp->formatMoney($sale_detail_returned->item_discount));
+								$this->excel->getActiveSheet()->SetCellValue('H'. $row, $this->erp->formatQuantity($sale_detail_returned->quantity));
+								$this->excel->getActiveSheet()->SetCellValue('I'. $row, $unit);
+								$this->excel->getActiveSheet()->SetCellValue('J'. $row, $this->erp->formatMoney($total_cost));
+								$this->excel->getActiveSheet()->SetCellValue('K'. $row, $this->erp->formatMoney($sale_detail_returned->subtotal - $sale_detail_returned->item_tax));
+								$this->excel->getActiveSheet()->SetCellValue('L', $this->erp->formatMoney($gross_margin));
 
-                            $row++;
-                        }
-                    }
-                    //Display total part
-                    $this->excel->getActiveSheet()->SetCellValue('I'. $row, lang("total").":");
-                    $this->excel->getActiveSheet()->SetCellValue('J'. $row, $this->erp->formatMoney($total_costs));
-                    $this->excel->getActiveSheet()->SetCellValue('K'. $row, $this->erp->formatMoney($total_amount));
-                    $this->excel->getActiveSheet()->SetCellValue('L'. $row, $this->erp->formatMoney($total_gross_margin));
-                    $this->excel->getActiveSheet()->mergeCells('A'.$row.':H'.$row);
-                    $this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
-                    $this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-                    $this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
-                    $row++;
-                    //Display Orderr Discount part
-                    $this->excel->getActiveSheet()->SetCellValue('A'.$row, lang("order_discount").":");
-                    $this->excel->getActiveSheet()->SetCellValue('K'. $row, "(".$this->erp->formatMoney($sale->order_discount).")");
-                    $this->excel->getActiveSheet()->SetCellValue('L'. $row, "(".$this->erp->formatMoney($sale->order_discount).")");
-                    $this->excel->getActiveSheet()->mergeCells('A'. $row.':I'. $row);
-                    $this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
-                    $this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-                    $this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
-                    $row++;
-                    //Display Shipping part
-                    $this->excel->getActiveSheet()->SetCellValue('K'. $row, $this->erp->formatMoney($sale->shipping));
-                    $this->excel->getActiveSheet()->SetCellValue('L'. $row, $this->erp->formatMoney($sale->shipping));
-                    $this->excel->getActiveSheet()->mergeCells('A'. $row.':I'. $row);
-                    $this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
-                    $this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-                    $this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("shipping").":");
-                    $row++;
-                    //Display subtotal
-                    $this->excel->getActiveSheet()->setCellValue('J'. $row, $this->erp->formatMoney($total_costs));
-                    $this->excel->getActiveSheet()->setCellValue('K'. $row, $this->erp->formatMoney($amount));
-                    $this->excel->getActiveSheet()->setCellValue('L'. $row, $this->erp->formatMoney($amount - $total_costs));
-                    $this->excel->getActiveSheet()->mergeCells('A'. $row.':I'. $row);
-                    $this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
-                    $this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-                    $this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->setCellValue('A'. $row, lang("subtotal").":");
-                    $row++;
-                    if ($sale->type == 2) {
-                        $g_order_discounts -= $sale->order_discount;
-                        $g_amounts -= $total_amount;
-                        $grand_totals -= $amount;
-                    } else {
-                        $g_order_discounts += $sale->order_discount;
-                        $g_amounts += $total_amount;
-                        $grand_totals += (float) ($amount);
-                    }
-                    $g_total_costs += $total_costs;
-                    //$g_gross_margin = ($g_amounts) - $g_total_costs ;
-                    $g_gross_margin = ($g_amounts) - $g_total_costs;
-                    $g_total_shipping += $sale->shipping;
-                    $g_total_tax += $sale->order_tax + $total_item_tax;
-                    $g_totals = ($g_amounts + $g_total_shipping + $g_total_tax) - $g_order_discounts;
-                }
-            }
+								$row++;
+							}
+						}
+						//Display total part
+						$this->excel->getActiveSheet()->SetCellValue('I'. $row, lang("total").":");
+						$this->excel->getActiveSheet()->SetCellValue('J'. $row, $this->erp->formatMoney($total_costs));
+						$this->excel->getActiveSheet()->SetCellValue('K'. $row, $this->erp->formatMoney($total_amount));
+						$this->excel->getActiveSheet()->SetCellValue('L'. $row, $this->erp->formatMoney($total_gross_margin));
+						$this->excel->getActiveSheet()->mergeCells('A'.$row.':H'.$row);
+						$this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
+						$row++;
+						//Display Orderr Discount part
+						$this->excel->getActiveSheet()->SetCellValue('A'.$row, lang("order_discount").":");
+						$this->excel->getActiveSheet()->SetCellValue('K'. $row, "(".$this->erp->formatMoney($sale->order_discount).")");
+						$this->excel->getActiveSheet()->SetCellValue('L'. $row, "(".$this->erp->formatMoney($sale->order_discount).")");
+						$this->excel->getActiveSheet()->mergeCells('A'. $row.':I'. $row);
+						$this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
+						$row++;
+						//Display Shipping part
+						$this->excel->getActiveSheet()->SetCellValue('K'. $row, $this->erp->formatMoney($sale->shipping));
+						$this->excel->getActiveSheet()->SetCellValue('L'. $row, $this->erp->formatMoney($sale->shipping));
+						$this->excel->getActiveSheet()->mergeCells('A'. $row.':I'. $row);
+						$this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
+						$this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("shipping").":");
+						$row++;
+						//Display subtotal
+						$this->excel->getActiveSheet()->setCellValue('J'. $row, $this->erp->formatMoney($total_costs));
+						$this->excel->getActiveSheet()->setCellValue('K'. $row, $this->erp->formatMoney($amount));
+						$this->excel->getActiveSheet()->setCellValue('L'. $row, $this->erp->formatMoney($amount - $total_costs));
+						$this->excel->getActiveSheet()->mergeCells('A'. $row.':I'. $row);
+						$this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
+						$this->excel->getActiveSheet()->setCellValue('A'. $row, lang("subtotal").":");
+						$row++;
+						if ($sale->type == 2) {
+							$g_order_discounts -= $sale->order_discount;
+							$g_amounts -= $total_amount;
+							$grand_totals -= $amount;
+						} else {
+							$g_order_discounts += $sale->order_discount;
+							$g_amounts += $total_amount;
+							$grand_totals += (float) ($amount);
+						}
+						$g_total_costs += $total_costs;
+						//$g_gross_margin = ($g_amounts) - $g_total_costs ;
+						$g_gross_margin = ($g_amounts) - $g_total_costs;
+						$g_total_shipping += $sale->shipping;
+						$g_total_tax += $sale->order_tax + $total_item_tax;
+						$g_totals = ($g_amounts + $g_total_shipping + $g_total_tax) - $g_order_discounts;
+					}
+				}
+			}else{
+				$sales = $this->db->query("SELECT * FROM ({$sql1} UNION {$sql2}) AS TEMP ORDER BY id DESC")->result();
+					foreach($sales as $key => $sale){
+
+						$table_return_items = "erp_return_items"; 
+						$table_sale_items = "erp_sale_items";
+
+						$sql = "SELECT
+						erp_sale_items.id,
+						erp_sale_items.sale_id,
+						erp_sale_items.category_id,
+						erp_sale_items.product_id,
+						erp_sale_items.product_code,
+						erp_sale_items.product_name,
+						erp_sale_items.net_unit_price,
+						erp_sale_items.unit_price,
+						erp_sale_items.unit_cost,
+						erp_sale_items.quantity,
+						erp_sale_items.warehouse_id,
+						erp_sale_items.discount,
+						erp_sale_items.item_discount,
+						erp_sale_items.subtotal,
+						erp_sale_items.item_tax,
+						(CASE WHEN erp_products.unit = 0 THEN erp_products.unit ELSE erp_units.name END) as unit
+						FROM ";
+
+						$sales_detail = $this->db->query("{$sql}{$table_sale_items} AS erp_sale_items
+							LEFT JOIN `erp_products` ON `erp_products`.`id` = `erp_sale_items`.`product_id`
+							LEFT JOIN `erp_units` ON `erp_units`.`id` = `erp_products`.`unit`
+							WHERE erp_sale_items.sale_id={$sale->id} GROUP BY id")->result();
+
+						$sales_detail_returned = $this->db->query("{$sql}{$table_return_items} AS erp_sale_items
+							LEFT JOIN `erp_products` ON `erp_products`.`id` = `erp_sale_items`.`product_id`
+							LEFT JOIN `erp_units` ON `erp_units`.`id` = `erp_products`.`unit`
+							WHERE erp_sale_items.return_id={$sale->id} GROUP BY id")->result();
+
+						$this->excel->getActiveSheet()->SetCellValue('A' . $row,$sale->reference_no.">>".$sale->customer.">>".date('d/M/Y h:i A', strtotime($sale->date)));
+						$this->excel->getActiveSheet()->mergeCells('A'.$row.':L'.$row);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
+						$row++;
+						$warehouse = "";
+						$total_item_tax = 0;
+						$total_discount = 0;
+						$total_quantity = 0;
+						$total_costs = 0;
+						$total_gross_margin = 0;
+						$total_amount = 0;
+						$sub_total = 0;
+						$total_amounts = 0;
+						$amount = 0;
+						$amounts = 0;
+						$total_overh = 0;
+
+						$sales_by_gls = $this->db->query("SELECT
+							erp_gl_trans.sale_id,
+							erp_gl_trans.customer_id,
+							erp_gl_trans.biller_id,
+							erp_gl_trans.tran_date,
+							erp_gl_trans.reference_no,
+							erp_gl_trans.description,
+							erp_gl_trans.amount,
+							erp_gl_trans.narrative,
+							erp_gl_trans.tran_type,
+							erp_gl_trans.account_code
+							FROM
+							erp_gl_trans
+							INNER JOIN erp_sales ON erp_sales.id = erp_gl_trans.sale_id                                                                 
+							WHERE erp_sales.id = {$sale->id}
+							AND sectionid = 50
+							GROUP BY reference_no
+							");
+
+
+						if ($sale->type == 1) {
+							foreach ($sales_detail as $sale_detail) {
+								$unit = $sale_detail->variant ? $sale_detail->variant : $sale_detail->unit;
+								$total_cost = $sale_detail->unit_cost * $sale_detail->quantity;
+								$gross_margin = ($sale_detail->subtotal - $sale_detail->item_tax) - $total_cost;
+								$sub_total = ($total_amount - $sale->order_discount) + $sale->order_tax + $total_item_tax + $sale->shipping;
+
+								$total_discount += $sale_detail->item_discount;
+								$total_quantity += $sale_detail->quantity;
+								$total_costs += $total_cost;
+								$total_gross_margin += $gross_margin;
+								$total_amount += $sale_detail->subtotal - $sale_detail->item_tax;
+								$total_amounts += $sale_detail->subtotal - $sale_detail->item_tax;
+								$total_item_tax += $sale_detail->item_tax;
+								$amount = $total_amount - $sale->order_discount + $sale->shipping;
+
+								$this->excel->getActiveSheet()->SetCellValue('A'. $row, "(".$sale_detail->product_name.")".$sale_detail->product_code);
+								$this->excel->getActiveSheet()->SetCellValue('B'. $row, $sale->biller);
+								$this->excel->getActiveSheet()->SetCellValue('C'. $row, $warehouses_arr[$sale_detail->warehouse_id]);
+								$this->excel->getActiveSheet()->SetCellValue('D' .$row, $this->erp->formatMoney($sale_detail->unit_cost));
+								$this->excel->getActiveSheet()->SetCellValue('E' .$row, $this->erp->formatMoney($sale_detail->unit_price));
+								$this->excel->getActiveSheet()->SetCellValue('F' .$row, "(".$this->erp->formatMoney($sale_detail->item_tax).")");
+								$this->excel->getActiveSheet()->SetCellValue('G'. $row, "(".$this->erp->formatMoney($sale_detail->item_discount).")");
+								$this->excel->getActiveSheet()->SetCellValue('H'. $row, $this->erp->formatQuantity($sale_detail->quantity));
+								$this->excel->getActiveSheet()->SetCellValue('I'. $row, $unit);
+								$this->excel->getActiveSheet()->SetCellValue('J'. $row, $this->erp->formatMoney($total_cost));
+								$this->excel->getActiveSheet()->SetCellValue('K'. $row, ($sale_detail->subtotal - $sale_detail->item_tax));
+								$this->excel->getActiveSheet()->SetCellValue('L'. $row, $this->erp->formatMoney($gross_margin));
+								$this->excel->getActiveSheet()->getStyle('B'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+								$row++;
+								
+								if ($sales_by_gls->num_rows() > 0) {
+									$e_total = 0;
+									$i_gross_margin = "";
+									$this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("OVERHEAD"));
+									foreach ($sales_by_gls->result() as $sales_by_gl) {
+										// $this->erp->print_arrays($sales_by_gl);
+										$e_total += $sales_by_gl->amount;
+										$e_amount = $this->erp->formatMoney($sales_by_gl->amount);
+										$d_gross_margin = ($total_gross_margin - $sale->order_discount + $sale->shipping) + (-1) * $e_total;
+										$e_sub_total = "(" . $this->erp->formatMoney(abs($e_total)) . ")";
+										$this->excel->getActiveSheet()->SetCellValue('A'. $row, $this->erp->hrld($sales_by_gl->tran_date));
+										$this->excel->getActiveSheet()->SetCellValue('B'. $row, $sales_by_gl->reference_no);
+										$this->excel->getActiveSheet()->SetCellValue('C'. $row, $sales_by_gl->description);
+										$this->excel->getActiveSheet()->SetCellValue('D'. $row, $e_amount);
+										$row++;
+									}
+									$total_overh += $e_total;
+									$this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("subtotal"));
+									$this->excel->getActiveSheet()->SetCellValue('B'. $row, $this->erp->formatMoney($e_total));
+									$this->excel->getActiveSheet()->SetCellValue('D'. $row, $e_sub_total);
+									$row++;
+									$this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("total_gross_margin"));
+									$this->excel->getActiveSheet()->SetCellValue('D'. $row, $this->erp->formatMoney($d_gross_margin));
+
+								}
+							}
+						}else{
+							foreach ($sales_detail_returned as $sale_detail_returned) {
+								$unit = $sale_detail_returned->variant ? $sale_detail_returned->variant : $sale_detail_returned->unit;
+								$total_cost = $sale_detail_returned->unit_cost * $sale_detail_returned->quantity;
+								$gross_margin = ($sale_detail_returned->subtotal - $sale_detail_returned->item_tax) - $total_cost;
+								$sub_total = ($total_amount - $sale->order_discount) + $sale->order_tax + $total_item_tax + $sale->shipping;
+
+								$total_discount += $sale_detail_returned->item_discount;
+								$total_quantity += $sale_detail_returned->quantity;
+								$total_costs += $total_cost;
+								$total_gross_margin += $gross_margin;
+								$total_amount += $sale_detail_returned->subtotal - $sale_detail_returned->item_tax;
+								$total_item_tax += $sale_detail_returned->item_tax;
+								$amount = $total_amount - $sale->order_discount + $sale->shipping;
+								$amounts += $amount;
+
+								$this->excel->getActiveSheet()->SetCellValue('A'. $row, $sale_detail_returned->product_name.$sale_detail_returned->product_code);
+								$this->excel->getActiveSheet()->SetCellValue('B'. $row, $sale->biller);
+								$this->excel->getActiveSheet()->SetCellValue('C'. $row, $warehouses_arr[$sale_detail_returned->warehouse_id]);
+								$this->excel->getActiveSheet()->SetCellValue('D'. $row, $this->erp->formatMoney($sale_detail_returned->unit_cost));
+								$this->excel->getActiveSheet()->SetCellValue('E'. $row, $this->erp->formatMoney($sale_detail_returned->unit_price));
+								$this->excel->getActiveSheet()->SetCellValue('F'. $row, $this->erp->formatMoney($sale_detail_returned->item_tax));
+								$this->excel->getActiveSheet()->SetCellValue('G'. $row, $this->erp->formatMoney($sale_detail_returned->item_discount));
+								$this->excel->getActiveSheet()->SetCellValue('H'. $row, $this->erp->formatQuantity($sale_detail_returned->quantity));
+								$this->excel->getActiveSheet()->SetCellValue('I'. $row, $unit);
+								$this->excel->getActiveSheet()->SetCellValue('J'. $row, $this->erp->formatMoney($total_cost));
+								$this->excel->getActiveSheet()->SetCellValue('K'. $row, $this->erp->formatMoney($sale_detail_returned->subtotal - $sale_detail_returned->item_tax));
+								$this->excel->getActiveSheet()->SetCellValue('L', $this->erp->formatMoney($gross_margin));
+
+								$row++;
+							}
+						}
+						//Display total part
+						$this->excel->getActiveSheet()->SetCellValue('I'. $row, lang("total").":");
+						$this->excel->getActiveSheet()->SetCellValue('J'. $row, $this->erp->formatMoney($total_costs));
+						$this->excel->getActiveSheet()->SetCellValue('K'. $row, $this->erp->formatMoney($total_amount));
+						$this->excel->getActiveSheet()->SetCellValue('L'. $row, $this->erp->formatMoney($total_gross_margin));
+						$this->excel->getActiveSheet()->mergeCells('A'.$row.':H'.$row);
+						$this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
+						$row++;
+						//Display Orderr Discount part
+						$this->excel->getActiveSheet()->SetCellValue('A'.$row, lang("order_discount").":");
+						$this->excel->getActiveSheet()->SetCellValue('K'. $row, "(".$this->erp->formatMoney($sale->order_discount).")");
+						$this->excel->getActiveSheet()->SetCellValue('L'. $row, "(".$this->erp->formatMoney($sale->order_discount).")");
+						$this->excel->getActiveSheet()->mergeCells('A'. $row.':I'. $row);
+						$this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
+						$row++;
+						//Display Shipping part
+						$this->excel->getActiveSheet()->SetCellValue('K'. $row, $this->erp->formatMoney($sale->shipping));
+						$this->excel->getActiveSheet()->SetCellValue('L'. $row, $this->erp->formatMoney($sale->shipping));
+						$this->excel->getActiveSheet()->mergeCells('A'. $row.':I'. $row);
+						$this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
+						$this->excel->getActiveSheet()->SetCellValue('A'. $row, lang("shipping").":");
+						$row++;
+						//Display subtotal
+						$this->excel->getActiveSheet()->setCellValue('J'. $row, $this->erp->formatMoney($total_costs));
+						$this->excel->getActiveSheet()->setCellValue('K'. $row, $this->erp->formatMoney($amount));
+						$this->excel->getActiveSheet()->setCellValue('L'. $row, $this->erp->formatMoney($amount - $total_costs));
+						$this->excel->getActiveSheet()->mergeCells('A'. $row.':I'. $row);
+						$this->excel->getActiveSheet()->getStyle('J'. $row.':L'. $row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+						$this->excel->getActiveSheet()->getStyle('A'. $row.':L'.$row)->getFont()->setBold(true);
+						$this->excel->getActiveSheet()->setCellValue('A'. $row, lang("subtotal").":");
+						$row++;
+						if ($sale->type == 2) {
+							$g_order_discounts -= $sale->order_discount;
+							$g_amounts -= $total_amount;
+							$grand_totals -= $amount;
+						} else {
+							$g_order_discounts += $sale->order_discount;
+							$g_amounts += $total_amount;
+							$grand_totals += (float) ($amount);
+						}
+						$g_total_costs += $total_costs;
+						//$g_gross_margin = ($g_amounts) - $g_total_costs ;
+						$g_gross_margin = ($g_amounts) - $g_total_costs;
+						$g_total_shipping += $sale->shipping;
+						$g_total_tax += $sale->order_tax + $total_item_tax;
+						$g_totals = ($g_amounts + $g_total_shipping + $g_total_tax) - $g_order_discounts;
+					}
+			}
             //Display the last Total of each total in Sale Detail Report
             $this->excel->getActiveSheet()->setCellValue('J'. $row, $this->erp->formatMoney($g_total_costs));
             $this->excel->getActiveSheet()->setCellValue('K'. $row, $this->erp->formatMoney($g_amounts));
@@ -14852,10 +15067,6 @@ function salesDetail_actions(){
                 exit();
             }
         }
-    }else {
-        $this->session->set_flashdata('error', lang("No_sales_detail_report_selected. Please select at least one."));
-        redirect($_SERVER["HTTP_REFERER"]);
-    } 
 }
 	
 	function sales_actions()

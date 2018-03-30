@@ -16,8 +16,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | environments.
 |
 */
-$config['base_url'] = 'http://msktravel.com/msk_travel/';
-
+//$config['base_url'] = 'http://msktravel.com/msk_travel/';
+$config['base_url']  =  "http://".$_SERVER['HTTP_HOST'];
+$config['base_url'] .= preg_replace('@/+$@', '', dirname($_SERVER['SCRIPT_NAME'])).'/';
 /*
 |--------------------------------------------------------------------------
 | Index File
