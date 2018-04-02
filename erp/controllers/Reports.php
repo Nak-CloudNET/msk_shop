@@ -14783,12 +14783,36 @@ function salesDetail_actions($start = NULL, $end = NULL){
 				}
 			}
 		}else{
-			if ($start && $end) {
-				$s_date = $this->erp->fld($start) . ' 00:00:00';
-				$e_date = $this->erp->fld($end) . ' 23:59:59';
-				$sql4 .= "date BETWEEN '{$s_date}' AND '{$e_date}'";
+			$sql_where = '';
+			if ($this->input->get('reference_no')) {
+				$sql_where .= " AND reference_no = '{$this->input->get('reference_no')}'";
 			}
-			$sales = $this->db->query("SELECT * FROM ({$sql1} UNION {$sql2}) AS TEMP WHERE {$sql4} ORDER BY id DESC")->result();
+			if ($this->input->get('customer')) {
+				$sql_where .= " AND customer = '{$this->input->get('customer')}'";
+			}
+			if ($this->input->get('biller')) {
+				$sql_where .= " AND biller_id = '{$this->input->get('biller')}'";
+			}
+			if ($this->input->get('warehouse')) {
+				$sql_where .= " AND warehouse_id = '{$this->input->get('warehouse')}'";
+			}
+			if ($this->input->get('user')) {
+				$sql_where .= " AND create_by = '{$this->input->get('user')}'";
+			}
+			if($this->input->get('start_date')){
+				$start = $this->erp->fld($this->input->get('start_date')).' 00:00:00';
+				$end   = $this->erp->fld($this->input->get('end_date')).' 23:59:59';
+				$sql_where .= " AND date >= '{$start}'";
+				$sql_where .= " AND date <= '{$end}'";
+			}
+			if ($this->input->get('sale_type')) {
+				$sql_where .= " AND type = '{$this->input->get('sale_type')}'";
+			}
+			if ($this->input->get('types')) {
+				$sql_where .= " AND pos = '{$this->input->get('types')}'";
+			}
+			
+			$sales = $this->db->query("SELECT * FROM ({$sql1} UNION {$sql2}) AS TEMP WHERE 1=1 {$sql_where} ORDER BY id DESC")->result();
 				foreach($sales as $key => $sale){
 
 					$table_return_items = "erp_return_items"; 
@@ -18328,7 +18352,7 @@ function salesDetail_actions($start = NULL, $end = NULL){
 		
 		if($this->data['start_date'] && $this->data['end_date']){
 			$start = $this->erp->fld($this->input->post('start_date')).' 00:00:00';
-			$end   = $this->erp->fld($this->input->post('start_date')).' 23:59:59';
+			$end   = $this->erp->fld($this->input->post('end_date')).' 23:59:59';
 			$sql3 .= " AND date >= '{$start}'";
 			$sql3 .= " AND date <= '{$end}'";
 		}

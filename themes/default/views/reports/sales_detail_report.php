@@ -26,6 +26,12 @@
 	if ($this->input->post('end_date')) {
 		$v .= "&end_date=" . $this->input->post('end_date');
 	}
+	if ($this->input->post('type')) {
+		$v .= "&sale_type=" . $this->input->post('type');
+	}
+	if ($this->input->post('types')) {
+		$v .= "&types=" . $this->input->post('types');
+	}
 	if (isset($biller_id)) {
 		$v .= "&biller_id=" . $biller_id;
 	}
@@ -83,7 +89,7 @@
 </script>
 
 <?php if ($Owner) {
-    echo form_open('reports/salesDetail_actions/'.$this->input->post('start_date').'/'.$this->input->post('end_date'), 'id="action-form"');
+    echo form_open('reports/salesDetail_actions'.'/?v=1'.$v, 'id="action-form"');
 } ?>
 <div class="box">
     <div class="box-header">

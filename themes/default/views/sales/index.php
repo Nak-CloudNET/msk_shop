@@ -1,9 +1,5 @@
 <?php
-	//$this->erp->print_arrays($warehouse_id);
 	$v = "";
-	/* if($this->input->post('name')){
-	  $v .= "&product=".$this->input->post('product');
-	  } */
 	if ($this->input->post('reference_no')) {
 		$v .= "&reference_no=" . $this->input->post('reference_no');
 	}
