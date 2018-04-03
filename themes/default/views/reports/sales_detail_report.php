@@ -275,6 +275,7 @@
 							$g_total_shipping = 0;
 							$g_total_tax =0;
 							$grand_totals = 0;
+							$total_overh = 0;
 							if(count($sales) > 0){ 
 								foreach($sales as $key => $sale){
 								
@@ -336,7 +337,7 @@
 									$total_amounts=0;
 						            $amount=0;	
                                     $amounts=0;
-									$total_overh = 0;
+									
 									
 									$sales_by_gls = $this->db->query("SELECT
 																	erp_gl_trans.sale_id,
@@ -591,7 +592,7 @@
 								<th colspan="10" style="color:#0586ff" class="right info-foot" ><?= lang("total_gross_margin"); ?> : </th>							
 								<th class="right" style="color:#0586ff"></th>
 								<th class="right" style="color:#0586ff"></th>
-								<th class="right" style="color:#0586ff"><?= $this->erp->formatMoney($grand_totals-$g_total_costs - $total_overh); ?></th>
+								<th class="right" style="color:#0586ff"><?= $this->erp->formatMoney($grand_totals - $g_total_costs - $total_overh); ?></th>
 							</tr>
 							
                         </tr>
