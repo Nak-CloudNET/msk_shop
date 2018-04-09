@@ -14943,7 +14943,6 @@ function salesDetail_actions($start = NULL, $end = NULL){
 							$this->excel->getActiveSheet()->SetCellValue('J'. $row, $this->erp->formatMoney($total_cost));
 							$this->excel->getActiveSheet()->SetCellValue('K'. $row, $this->erp->formatMoney($sale_detail_returned->subtotal - $sale_detail_returned->item_tax));
 							$this->excel->getActiveSheet()->SetCellValue('L'. $row, $this->erp->formatMoney($gross_margin));
-						
 							$row++;
 						}
 					}
