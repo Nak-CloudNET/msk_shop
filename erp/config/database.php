@@ -62,7 +62,7 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => '192.168.1.246',
+	'hostname' => '192.168.1.40',
 	'username' => 'root',
 	'password' => '',
 	'database' => 'msk_travel',

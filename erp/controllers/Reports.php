@@ -18176,7 +18176,7 @@ function salesDetail_actions($start = NULL, $end = NULL){
 	
 	//////////////////////////rothana addition//////////////////////
 	
-	public function sales_detail($biller_id = NULL)
+	public function sales_detail($biller_id = NULL, $hello)
 	{
 		$this->erp->checkPermissions('report_sale',NULL,'sale_report');		
 		$user = $this->site->getUser();
