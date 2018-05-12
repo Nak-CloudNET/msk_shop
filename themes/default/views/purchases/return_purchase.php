@@ -1,10 +1,89 @@
-
+<style type="text/css">
+	.select2-container {
+		width: 100% !important;
+	}
+</style>
 <script type="text/javascript">
     var count = 1, an = 1, DT = <?= $Settings->default_tax_rate ?>, po_edit = 1,
         product_tax = 0, invoice_tax = 0, total_discount = 0, total = 0, shipping = 0, surcharge = 0,
         tax_rates = <?php echo json_encode($tax_rates); ?>;
 
     $(document).ready(function () {
+		var MaxInputs       = 30;
+		var InputsWrapper   = jQuery(".journalContainer");
+		var AddButton       = jQuery("#addDescription");
+		
+		var InputCount = jQuery(".journal-list");
+		var x = InputCount.length;
+		
+		var FieldCount=2;
+
+		$(AddButton).click(function (e)
+		{     
+			if(x <= MaxInputs) 
+			{ 
+				FieldCount++; 
+				var div = '<div class="col-md-12 journal-list divwrap'+FieldCount+'">';
+				div += '	<div class="col-md-6">';
+				div += '			<div class="form-group company">';
+				div += '				<select class="form-control input-tip select" id="select" name="account_section[]" style="width:100% !important;" required="required">';
+				div += '				<?php foreach($sectionacc as $section){ ?>';
+				div += '					<option value="<?=$section->accountcode?>"><?=$section->accountcode . " | " . $section->accountname; ?></option>';
+				div += '				<?php } ?>';
+				div += '				</select>';
+				div += '			</div>';
+				div += '		</div>';
+				
+				div += '		<div class="col-md-6">';
+				div += '			<div class="form-group">';
+				div += '				<input type="text" name="debit[]" value="" class="form-control debit'+FieldCount+'" id="debit"> ';
+				div += '			</div>';
+				div += '		</div>';
+						
+				div += '		<div class="col-md-1">';
+				div += '			<button type="button" data="'+FieldCount+'" class="removefile btn btn-danger">&times;</button>';
+				div += '		</div>';
+				div += '	</div>';
+
+				$(InputsWrapper).append(div);
+				x++;
+			}
+			return false;
+		});
+		
+		function AutoDebit() {
+			var v_debit = 0;
+			var i = 1;
+			var expense_tax = 0;
+			
+			$('[name^=debit]').each(function(i, item) {
+				v_debit +=  parseFloat($(item).val()) || 0;
+			});
+			
+			if (site.settings.tax2 != 0) {
+				if (potax2 = localStorage.getItem('potax2')) {
+					$.each(tax_rates, function () {
+						if (this.id == potax2) {
+							if (this.type == 2) {
+								expense_tax = parseFloat(this.rate);
+							}
+							if (this.type == 1) {
+								expense_tax = parseFloat((v_debit * this.rate) / 100);
+							}
+						}
+					});
+				}
+			}
+			
+			$("#calDebit").text(v_debit);
+			$("#in_calDebit").val(v_debit);
+			$('#total').text(formatPurDecimal(v_debit));
+			$('#ttax2').text(formatPurDecimal(expense_tax));
+			$('#in_calOrdTax').val(expense_tax);
+			
+			var v_grand_total = v_debit + expense_tax;
+			$('#gtotal').text(formatPurDecimal(v_grand_total));
+		}
         <?php if ($inv) { ?>
         //localStorage.setItem('redate', '<?= $this->erp->hrld($inv->date) ?>');
         localStorage.setItem('reref', '<?= $reference ?>');
@@ -278,7 +357,7 @@
 		});
     });
     
-    $(document).on('click', '#add_return', function(){
+   /* $(document).on('click', '#add_return', function(){
         var purchase_id = <?php echo $inv->id ?>;
         var is = true;
         $.ajax({
@@ -295,7 +374,7 @@
         if(is == false){
             return false;
         }
-    });
+    });*/
          
     //localStorage.clear();
     function loadItems() {
@@ -489,6 +568,19 @@
 		  }
 		});
     }
+	
+	$(window).load(function(){
+		var type_of_po = '<?= $type_of_po ?>';
+		if(type_of_po == 'po'){
+			$(".item_form").css("display", "");
+			$(".po_form").css("display", "none");
+			$(".exp_form").css("display", "none");
+		}else{
+			$(".item_form").css("display", "none");
+			$(".po_form").css("display", "");
+			$(".exp_form").css("display", "");
+		}
+	});
 		
 </script>
 <div class="row">
@@ -588,27 +680,35 @@
                         
 						<div class="col-md-4">
                             <div class="form-group">
-                                <?= lang("supplier", "supplier"); ?>
-								<input type="text" value="<?= $inv->supplier;?>" class="form-control" style="pointer-events: none;" />
+                                <?= lang("return_surcharge", "return_surcharge"); ?>
+                                <?php echo form_input('return_surcharge', (isset($_POST['return_surcharge']) ? $_POST['return_surcharge'] : 0), 'class="form-control input-tip" id="return_surcharge" required="required"'); ?>
+                            </div>
+                        </div>
+						
+						<div class="col-md-4 po_form">
+                            <div class="form-group">
+                                <?= lang("customers", "scustomer"); ?>
+								<input type="text" value="<?= $customer->name;?>" class="form-control" style="pointer-events: none;" />
+								<input name="customers" type="hidden" value="<?= $inv->customer_id;?>" class="form-control" style="pointer-events: none;" />
+                            </div>
+                        </div>
+						
+						<div class="col-md-4 po_form">
+                            <div class="form-group">
+                                <?= lang("customer_invoices", "scustomer_no"); ?>
+								<input name="customer_invoices" type="text" value="<?= $sale->reference_no;?>" class="form-control" style="pointer-events: none;" />
+								<input name="customer_invoices" type="hidden" value="<?= $inv->sale_id;?>" class="form-control" style="pointer-events: none;" />
                             </div>
                         </div>
 						
 						<div class="col-md-4">
                             <div class="form-group">
-                                <?= lang("return_surcharge", "return_surcharge"); ?>
-                                <?php echo form_input('return_surcharge', (isset($_POST['return_surcharge']) ? $_POST['return_surcharge'] : 0), 'class="form-control input-tip" id="return_surcharge" required="required"'); ?>
+                                <?= lang("supplier", "supplier"); ?>
+								<input type="text" value="<?= $inv->supplier;?>" class="form-control" style="pointer-events: none;" />
                             </div>
                         </div>
 
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <?= lang("document", "document") ?>
-                                <input id="document" type="file" data-browse-label="<?= lang('browse'); ?>" name="document" data-show-upload="false"
-                                       data-show-preview="false" class="form-control file">
-                            </div>
-                        </div>
-
-                        <div class="col-md-12">
+                        <div class="col-md-12 item_form">
                             <div class="control-group table-group">
                                 <label class="table-label"><?= lang("order_items"); ?></label> (<?= lang('return_tip'); ?>)
 
@@ -638,9 +738,7 @@
                                                 echo '<th class="col-md-1">' . $this->lang->line("product_tax") . '</th>';
                                             }
                                             ?>
-                                            <th><?= lang("subtotal"); ?> (<span
-                                                    class="currency"><?= $default_currency->code ?></span>)
-                                            </th>
+                                            <th><?= lang("subtotal"); ?></th>
                                             <th style="width: 30px !important; text-align: center;">
                                                 <i class="fa fa-trash-o" style="opacity:0.5; filter:alpha(opacity=50);"></i>
                                             </th>
@@ -653,7 +751,7 @@
                             
                         </div>
 
-						<div class="col-md-12">
+						<div class="col-md-12 item_form">
                             <div class="form-group">
                                 <input disabled="disabled" type="checkbox" class="checkbox" id="extras" value=""/>
 								<label for="extras" class="padding05"><?= lang('more_options') ?></label>
@@ -698,7 +796,7 @@
                         <div style="height:15px; clear: both;"></div>
                         
 						<?php if($inv->paid > 0) { ?>
-							<div id="payments">
+							<div class="item_form" id="payments">
 								<div class="col-md-12">
 									<div class="well well-sm well_1">
 										<div class="col-md-12">
@@ -829,14 +927,103 @@
 
                                     </div>
                                 </div>
-
                             </div>
-
                         </div>
+						
+						<div class="clearfix"></div>
+						<div class="exp_form">							
+							<?php $attrib = array('data-toggle' => 'validator', 'role' => 'form');
+							echo form_open_multipart("account/save_journal", $attrib); ?>
+							<div class="panel-body">
+							<div class="row">
+								<?php
+								$description = '';
+								if(isset($journals)){
+									$old_transno=0;
+									foreach($journals as $journal1){
+										$old_transno = $journal1->tran_no;
+										if($journal1->description != ""){
+										
+											$description = $journal1->description;
+										}
+									}
+								}
+								?>	
+								<!--
+								<div class="col-md-8"></div>								
+								<div class="col-md-12">
+									<div class="form-group">
+										<button style="margin-right: 30px;" type="button" class="btn btn-primary pull-right" id="addDescription"><i class="fa fa-plus-circle"></i></button>
+									</div>
+								</div> -->
+							</div>
+							<div class="row journalContainer">
+								<div class="col-md-12">
+									<div class="col-md-6">
+										<div class="form-group margin-b-5"><?= lang("chart_account", "chart_account"); ?></div>
+									</div>
+									<div class="col-md-6"><div class="form-group margin-b-5"><?= lang("amount", "amount"); ?></div></div>
+									<input type="hidden" name="old_transno" value="<?=$old_transno?>">
+								</div>
+								<?php
+								$n = 1;
+								$debit = 0;
+								$credit = 0;
+								foreach($journals as $journal){
+									
+									if($journal->debit != 0 && $acc_setting->default_purchase_tax != $journal->account_code){
+									
+								?>
+									<div class="col-md-12 journal-list">
+										<div class="col-md-6">
+											<div class="form-group company">
+												<?php
+												$acc_section = array(""=>"");
+												foreach($sectionacc as $section){
+													$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
+												}
+												echo form_dropdown('account_section[]', $acc_section, $journal->account_code,'', 'id="account_section" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("Account") . ' ' . $this->lang->line("Section") . '" required="required" style="width: 100% !important; pointer-events: none !important;"'); 
+												?>
+												<input type="hidden" name="tran_id[]" value="<?= $journal->tran_id ?>">
+											</div>
+										</div>
+										
+										<div class="col-md-6">
+											<div class="form-group">
+												<?php echo form_input('debit[]', ($journal->debit!=0?$journal->debit:$journal->credit), 'class="form-control debit" id="debit debit'.$n.'" style="pointer-events: none !important;"'); ?>
+											</div>
+										</div>
+										<!--
+										<div class="col-md-1">
+											<div class="form-group ">
+												<button type="button" class="removefiles btn btn-danger">&times;</button>
+											</div>
+										</div> -->
+									</div>
+									
+									<?php 
+									$debit += $journal->debit;
+									$n++;
+									}
+								}
+									?>
+								
+							</div>
+									
+							<div class="col-md-6"></div>
+							<div class="col-md-5">
+								<div class="form-group">
+									<label id="calDebit" style="padding-left: 18px;"><?=$debit?></label>
+									<input type="hidden" id="in_calDebit" value="<?=$debit?>"  class="in_calDebit" name="in_calDebit" />
+									<input type="hidden" id="in_calOrdTax"  class="in_calOrdTax" name="in_calOrdTax" />
+								</div>
+							</div>
+							</div>
+						</div>						
                         <div class="col-md-12">
                             <div class="fprom-group"><?php echo form_submit('add_return', $this->lang->line("submit"), 'id="add_return" class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?></div>
 							
-							<div id="bottom-total" class="well well-sm" style="margin-bottom: 0;">
+							<div id="bottom-total" class="well well-sm item_form" style="margin-bottom: 0;">
                                 <table class="table table-bordered table-condensed totals" style="margin-bottom:0;">
                                     <tr class="warning">
                                         <td>
@@ -861,17 +1048,17 @@
                                             <span class="totals_val pull-right" id="ttax2">0.00</span>
                                         </td>
                                         <?php } ?>
-									<!--	<td>
+										<td>
                                             <?= lang('surcharges') ?>
                                             <span class="totals_val pull-right" id="trs">0.00</span>
-                                        </td> -->
+                                        </td>
                                         <td>
                                             <?= lang('grand_total') ?>
                                             <span class="totals_val pull-right" id="gtotal">0.00</span>
                                         </td>
                                     </tr>
                                 </table>
-                            </div>
+                            </div>							
                         </div>
                     </div>
                 </div>
@@ -884,7 +1071,7 @@
         </div>
     </div>
 </div>
-<div class="modal" id="prModal" tabindex="-1" role="dialog" aria-labelledby="prModalLabel" aria-hidden="true">
+<div class="modal item_form" id="prModal" tabindex="-1" role="dialog" aria-labelledby="prModalLabel" aria-hidden="true">
 						<div class="modal-dialog">
 							<div class="modal-content">
 								<div class="modal-header">

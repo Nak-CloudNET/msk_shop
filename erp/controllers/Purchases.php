@@ -388,7 +388,7 @@ class Purchases extends MY_Controller
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
         }
-
+		$type_of_po = $this->purchases_model->getPurchaseByID($id)->type_of_po;
         $this->form_validation->set_rules('reference_no', $this->lang->line("reference_no"), 'trim|required|is_unique[return_purchases.reference_no]');
         $this->form_validation->set_rules('return_surcharge', lang("return_surcharge"), 'required');
        
@@ -401,7 +401,6 @@ class Purchases extends MY_Controller
             $tax_rate = "tax_rate";
 			$podiscount = "podiscount";
 			$biller_id = $this->input->post('biller');
-			
             $reference = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('rep',$biller_id);
             if ($this->Owner || $this->Admin) {
                 $date = $this->erp->fld(trim($this->input->post('date')));
@@ -412,193 +411,305 @@ class Purchases extends MY_Controller
             $return_surcharge = $this->input->post('return_surcharge') ? $this->input->post('return_surcharge') : 0;
             $note = $this->erp->clear_tags($this->input->post('note'));
             $shipping = $this->input->post('shipping') ? $this->input->post('shipping') : 0; 
-            $total = 0;
-            $product_tax = 0;
-            $order_tax = 0;
-            $product_discount = 0;
-            $order_discount = 0;
-            $percentage = '%';
-			$olo_amount = 0;
-			$olo_discount = 0;
-			$olo_tax = 0;
-            $total_pay = $this->input->post('total_pay');
-            $i = isset($_POST['product']) ? sizeof($_POST['product']) : 0;
-            for ($r = 0; $r < $i; $r++) {
-                $item_id = $_POST['product_id'][$r];
-                $item_code = $_POST['product'][$r];
-                $purchase_item_id = $_POST['purchase_item_id'][$r];
-                $item_option = isset($_POST['product_option'][$r]) && !empty($_POST['product_option'][$r]) && $_POST['product_option'][$r] != 'false' ? $_POST['product_option'][$r] : null;
-                $real_unit_cost = $this->erp->formatDecimal($_POST['real_unit_cost'][$r]);
-                //$unit_cost = $this->erp->formatDecimal($_POST['unit_cost'][$r]);
-                $unit_cost = $this->erp->formatDecimal($_POST['unit_variant_cost'][$r]);
-                $item_quantity = $_POST['quantity'][$r];
-                $item_expiry = isset($_POST['expiry'][$r]) ? $_POST['expiry'][$r] : '';
-                $item_tax_rate = isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : null;
-                $item_discount = isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : null;
+			if($type_of_po == 'po'){
+				$total = 0;
+				$product_tax = 0;
+				$order_tax = 0;
+				$product_discount = 0;
+				$order_discount = 0;
+				$percentage = '%';
+				$olo_amount = 0;
+				$olo_discount = 0;
+				$olo_tax = 0;
+				$total_pay = $this->input->post('total_pay');
+				$i = isset($_POST['product']) ? sizeof($_POST['product']) : 0;
+				for ($r = 0; $r < $i; $r++) {
+					$item_id = $_POST['product_id'][$r];
+					$item_code = $_POST['product'][$r];
+					$purchase_item_id = $_POST['purchase_item_id'][$r];
+					$item_option = isset($_POST['product_option'][$r]) && !empty($_POST['product_option'][$r]) && $_POST['product_option'][$r] != 'false' ? $_POST['product_option'][$r] : null;
+					$real_unit_cost = $this->erp->formatDecimal($_POST['real_unit_cost'][$r]);
+					//$unit_cost = $this->erp->formatDecimal($_POST['unit_cost'][$r]);
+					$unit_cost = $this->erp->formatDecimal($_POST['unit_variant_cost'][$r]);
+					$item_quantity = $_POST['quantity'][$r];
+					$item_expiry = isset($_POST['expiry'][$r]) ? $_POST['expiry'][$r] : '';
+					$item_tax_rate = isset($_POST['product_tax'][$r]) ? $_POST['product_tax'][$r] : null;
+					$item_discount = isset($_POST['product_discount'][$r]) ? $_POST['product_discount'][$r] : null;
 
-                if (isset($item_code) && isset($real_unit_cost) && isset($unit_cost) && isset($item_quantity)) {
-                    $product_details = $this->purchases_model->getProductByCode($item_code);
+					if (isset($item_code) && isset($real_unit_cost) && isset($unit_cost) && isset($item_quantity)) {
+						$product_details = $this->purchases_model->getProductByCode($item_code);
 
-                    $item_type = $product_details->type;
-                    $item_name = $product_details->name;
+						$item_type = $product_details->type;
+						$item_name = $product_details->name;
 
-                    if (isset($item_discount)) {
-                        $discount = $item_discount;
-                        $dpos = strpos($discount, $percentage);
-                        if ($dpos !== false) {
-                            $pds = explode("%", $discount);
-                            $pr_discount = (($this->erp->formatDecimal($unit_cost)) * (Float) ($pds[0])) / 100;
-                        } else {
-                            $pr_discount = $this->erp->formatDecimal($discount);
-                        }
-                    } else {
-                        $pr_discount = 0;
-                    }
-                    
-                    $pr_item_discount = $this->erp->formatDecimal($pr_discount * $item_quantity);
-                    $product_discount += $pr_item_discount;
+						if (isset($item_discount)) {
+							$discount = $item_discount;
+							$dpos = strpos($discount, $percentage);
+							if ($dpos !== false) {
+								$pds = explode("%", $discount);
+								$pr_discount = (($this->erp->formatDecimal($unit_cost)) * (Float) ($pds[0])) / 100;
+							} else {
+								$pr_discount = $this->erp->formatDecimal($discount);
+							}
+						} else {
+							$pr_discount = 0;
+						}
+						
+						$pr_item_discount = $this->erp->formatDecimal($pr_discount * $item_quantity);
+						$product_discount += $pr_item_discount;
 
-                    if (isset($item_tax_rate) && $item_tax_rate != 0) {
-                        $pr_tax = $item_tax_rate;
-                        $tax_details = $this->site->getTaxRateByID($pr_tax);
-                        if ($tax_details->type == 1 && $tax_details->rate != 0) {
+						if (isset($item_tax_rate) && $item_tax_rate != 0) {
+							$pr_tax = $item_tax_rate;
+							$tax_details = $this->site->getTaxRateByID($pr_tax);
+							if ($tax_details->type == 1 && $tax_details->rate != 0) {
 
-                            if (!$product_details->tax_method) {
-                                $item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / (100 + $tax_details->rate));
-                                $tax = $tax_details->rate . "%";
-                            } else {
-                                $item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / 100);
-                                $tax = $tax_details->rate . "%";
-                            }
+								if (!$product_details->tax_method) {
+									$item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / (100 + $tax_details->rate));
+									$tax = $tax_details->rate . "%";
+								} else {
+									$item_tax = $this->erp->formatDecimal((($unit_cost) * $tax_details->rate) / 100);
+									$tax = $tax_details->rate . "%";
+								}
 
-                        } elseif ($tax_details->type == 2) {
+							} elseif ($tax_details->type == 2) {
 
-                            $item_tax = $this->erp->formatDecimal($tax_details->rate);
-                            $tax = $tax_details->rate;
+								$item_tax = $this->erp->formatDecimal($tax_details->rate);
+								$tax = $tax_details->rate;
 
-                        }
-                        $pr_item_tax = $this->erp->formatDecimal($item_tax * $item_quantity);
+							}
+							$pr_item_tax = $this->erp->formatDecimal($item_tax * $item_quantity);
 
-                    } else {
-                        $pr_tax = 0;
-                        $pr_item_tax = 0;
-                        $tax = "";
-                    }
-                    
-					$item_net_cost = $unit_cost;
-					
-                    $product_tax += $pr_item_tax;
-                    $subtotal = (($item_net_cost * $item_quantity) + $pr_item_tax);
-                    $quantity_balance = 0;
-					if($item_option != 0) {
-						$row = $this->purchases_model->getVariantQtyById($item_option);
-						$quantity_balance = $item_quantity * $row->qty_unit;
-					}else{
-						$quantity_balance = $item_quantity;
+						} else {
+							$pr_tax = 0;
+							$pr_item_tax = 0;
+							$tax = "";
+						}
+						
+						$item_net_cost = $unit_cost;
+						
+						$product_tax += $pr_item_tax;
+						$subtotal = (($item_net_cost * $item_quantity) + $pr_item_tax);
+						$quantity_balance = 0;
+						if($item_option != 0) {
+							$row = $this->purchases_model->getVariantQtyById($item_option);
+							$quantity_balance = $item_quantity * $row->qty_unit;
+						}else{
+							$quantity_balance = $item_quantity;
+						}
+						$old = $this->purchases_model->getPurcahseItemByPurchaseIDProductID($id,$item_id);
+						$amount_olo = $old->net_unit_cost * $item_quantity; 
+						
+						
+						
+						$products[] = array(
+							'product_id' => $item_id,
+							'product_code' => $item_code,
+							'product_name' => $item_name,
+							'product_type' => $item_type,
+							'option_id' => $item_option,
+							'net_unit_cost' => $item_net_cost,
+							'quantity' => $item_quantity,
+							'quantity_balance' 	=> $quantity_balance,
+							'warehouse_id' => $purchase->warehouse_id,
+							'item_tax' => $pr_item_tax,
+							'tax_rate_id' => $pr_tax,
+							'tax' => $tax,
+							'discount' => $item_discount,
+							'item_discount' => $pr_item_discount?$pr_item_discount:0,
+							'subtotal' => $this->erp->formatDecimal($subtotal) ? $this->erp->formatDecimal($subtotal) : 0,
+							'real_unit_cost' => $real_unit_cost,
+							'purchase_item_id' => $purchase_item_id,
+							'old_subtotal' => $amount_olo
+						);
+						$olo_amount += $old->net_unit_cost * $item_quantity; 
+						$total += $item_net_cost * $item_quantity;
 					}
-					$old = $this->purchases_model->getPurcahseItemByPurchaseIDProductID($id,$item_id);
-					$amount_olo = $old->net_unit_cost * $item_quantity; 
+				}
+				
+				if (empty($products)) {
+					$this->form_validation->set_rules('product', lang("order_items"), 'required');
+				} else {
+					krsort($products);
+				}
+
+				if ($this->input->post('discount')) {
+					$order_discount_id = $this->input->post('order_discount');
+					$opos = strpos($order_discount_id, $percentage);
+					if ($opos !== false) {
+						$ods = explode("%", $order_discount_id);
+						$order_discount = $this->erp->formatDecimal((($total + $product_tax) * (Float) ($ods[0])) / 100);
+						$olo_discount = $this->erp->formatDecimal((($old_amount + $product_tax) * (Float) ($ods[0])) / 100);
+					} else {
+						$order_discount = $this->erp->formatDecimal((($total + $product_tax) * (Float) ($order_discount_id)) / 100);
+						$olo_discount   = $this->erp->formatDecimal((($old_amount + $product_tax) * (Float) ($order_discount_id)) / 100);
+					}
+				} else {
+					$order_discount_id = null;
+				}
+				$total_discount = $order_discount + $product_discount;
+
+				if ($this->Settings->tax2) {
+					$order_tax_id = $this->input->post('order_tax');
+					if ($order_tax_details = $this->site->getTaxRateByID($order_tax_id)) {
+						if ($order_tax_details->type == 2) {
+							$order_tax = $this->erp->formatDecimal($order_tax_details->rate);
+							
+							$olo_tax = $this->erp->formatDecimal($order_tax_details->rate);
+						}
+						if ($order_tax_details->type == 1) {
+							$order_tax = $this->erp->formatDecimal((($total + $product_tax - $order_discount + $shipping) * $order_tax_details->rate) / 100);
+							
+							$olo_tax = $this->erp->formatDecimal((($olo_amount + $product_tax - $olo_discount + $shipping) * $order_tax_details->rate) / 100);
+						}
+					}
+				} else {
+					$order_tax_id = null;
+				}
+
+				$total_tax 	 = $this->erp->formatDecimal($product_tax + $order_tax);
+				
+				$grand_total = $this->erp->formatDecimal($this->erp->formatDecimal($total) + $total_tax + $shipping - $this->erp->formatDecimal($return_surcharge) - $order_discount);
+				
+				$olo_total 	 = $this->erp->formatDecimal($this->erp->formatDecimal($olo_amount) + $olo_tax + $shipping - $this->erp->formatDecimal($return_surcharge) - $olo_discount);
+				
+				
+				$data = array(
+					'date' 				=> $date,
+					'purchase_id' 		=> $id,
+					'reference_no' 		=> $reference,
+					'supplier_id' 		=> $purchase->supplier_id,
+					'supplier' 			=> $purchase->supplier,
+					'warehouse_id' 		=> $purchase->warehouse_id,
+					'note' 				=> $note,
+					'total' 			=> $this->erp->formatDecimal($total) ? $this->erp->formatDecimal($total):0,
+					'product_discount' 	=> $this->erp->formatDecimal($product_discount),
+					'order_discount_id' => $order_discount_id ? $order_discount_id : 0,
+					'order_discount' 	=> $order_discount ? $order_discount : 0,
+					'total_discount' 	=> $total_discount ? $total_discount : 0,
+					'product_tax' 		=> $this->erp->formatDecimal($product_tax),
+					'order_tax_id' 		=> $order_tax_id ? $order_tax_id : 0,
+					'order_tax' 		=> $order_tax ? $order_tax : 0,
+					'total_tax' 		=> $total_tax ? $total_tax : 0,
+					'shipping' 			=> $shipping ? $shipping : 0,
+					'surcharge' 		=> $this->erp->formatDecimal($return_surcharge),
+					'grand_total' 		=> $grand_total ? $grand_total : 0,
+					'old_grand_total' 	=> $olo_total ? $olo_total : 0,
+					'created_by' 		=> $this->session->userdata('user_id'),
+					'biller_id' 		=> $this->input->post('biller'),
+					'paid' 			    => $this->erp->formatDecimal($this->input->post('amount-paid'))
+				);
+			}else{
+				
+				$tran_no = $this->purchases_model->getTranNo();
+				$ac_ap   = $this->purchases_model->ACC_AP();
+				$ac_tax	 = $this->purchases_model->ACC_Pur_Tax();
+				$account_code = $this->input->post('account_section');
+				$debit = $this->input->post('debit');
+				$amount_ap =  $this->input->post('in_calDebit');
+				$amount_tax =  $this->input->post('in_calOrdTax');
+				
+				$description = strip_tags($this->input->post('description'), '</p>');
+				
+				$i = 0;
+				$data  = array();
+				$total = 0;
+				
+				
+				/*$data[] =  array(
+						'tran_type' => 'PURCHASES-RETURN',
+						'tran_no' => $tran_no,
+						'account_code' => $ac_ap,
+						'tran_date' => $date,
+						'reference_no' => $reference,
+						'description' => $description,
+						'amount' => (-($amount_ap + $amount_tax)),
+						'biller_id' => $biller_id,
+						'sale_id' => $this->input->post('customer_invoices'),
+						'customer_id' => $this->input->post('customers'),
+						);
+				if($amount_tax > 0) {		
+					$data[] =  array(
+							'tran_type' => 'PURCHASES-RETURN',
+							'tran_no' => $tran_no,
+							'account_code' => $ac_tax,
+							'tran_date' => $date,
+							'reference_no' => $reference,
+							'description' => $description,
+							'amount' => $amount_tax,
+							'biller_id' => $biller_id,
+							'sale_id' => $this->input->post('customer_invoices'),
+							'customer_id' => $this->input->post('customers'),
+							);
+				}*/
+				for($i=0; $i<count($account_code); $i++) {
 					
-					
-					
-                    $products[] = array(
-                        'product_id' => $item_id,
-                        'product_code' => $item_code,
-                        'product_name' => $item_name,
-                        'product_type' => $item_type,
-                        'option_id' => $item_option,
-                        'net_unit_cost' => $item_net_cost,
-                        'quantity' => $item_quantity,
-						'quantity_balance' 	=> $quantity_balance,
-                        'warehouse_id' => $purchase->warehouse_id,
-                        'item_tax' => $pr_item_tax,
-                        'tax_rate_id' => $pr_tax,
-                        'tax' => $tax,
-                        'discount' => $item_discount,
-                        'item_discount' => $pr_item_discount?$pr_item_discount:0,
-                        'subtotal' => $this->erp->formatDecimal($subtotal) ? $this->erp->formatDecimal($subtotal) : 0,
-                        'real_unit_cost' => $real_unit_cost,
-                        'purchase_item_id' => $purchase_item_id,
-						'old_subtotal' => $amount_olo
-                    );
-					$olo_amount += $old->net_unit_cost * $item_quantity; 
-                    $total += $item_net_cost * $item_quantity;
-                }
-            }
-			
-            if (empty($products)) {
-                $this->form_validation->set_rules('product', lang("order_items"), 'required');
-            } else {
-                krsort($products);
-            }
-
-            if ($this->input->post('discount')) {
-                $order_discount_id = $this->input->post('order_discount');
-                $opos = strpos($order_discount_id, $percentage);
-                if ($opos !== false) {
-                    $ods = explode("%", $order_discount_id);
-                    $order_discount = $this->erp->formatDecimal((($total + $product_tax) * (Float) ($ods[0])) / 100);
-					$olo_discount = $this->erp->formatDecimal((($old_amount + $product_tax) * (Float) ($ods[0])) / 100);
-                } else {
-                    $order_discount = $this->erp->formatDecimal((($total + $product_tax) * (Float) ($order_discount_id)) / 100);
-					$olo_discount   = $this->erp->formatDecimal((($old_amount + $product_tax) * (Float) ($order_discount_id)) / 100);
-                }
-            } else {
-                $order_discount_id = null;
-            }
-            $total_discount = $order_discount + $product_discount;
-
-            if ($this->Settings->tax2) {
-                $order_tax_id = $this->input->post('order_tax');
-                if ($order_tax_details = $this->site->getTaxRateByID($order_tax_id)) {
-                    if ($order_tax_details->type == 2) {
-                        $order_tax = $this->erp->formatDecimal($order_tax_details->rate);
-						
-						$olo_tax = $this->erp->formatDecimal($order_tax_details->rate);
-                    }
-                    if ($order_tax_details->type == 1) {
-                        $order_tax = $this->erp->formatDecimal((($total + $product_tax - $order_discount + $shipping) * $order_tax_details->rate) / 100);
-						
-						$olo_tax = $this->erp->formatDecimal((($olo_amount + $product_tax - $olo_discount + $shipping) * $order_tax_details->rate) / 100);
-                    }
-                }
-            } else {
-                $order_tax_id = null;
-            }
-
-            $total_tax 	 = $this->erp->formatDecimal($product_tax + $order_tax);
-            
-			$grand_total = $this->erp->formatDecimal($this->erp->formatDecimal($total) + $total_tax + $shipping - $this->erp->formatDecimal($return_surcharge) - $order_discount);
-			
-			$olo_total 	 = $this->erp->formatDecimal($this->erp->formatDecimal($olo_amount) + $olo_tax + $shipping - $this->erp->formatDecimal($return_surcharge) - $olo_discount);
-            
-            
-            $data = array(
-				'date' 				=> $date,
-                'purchase_id' 		=> $id,
-                'reference_no' 		=> $reference,
-                'supplier_id' 		=> $purchase->supplier_id,
-                'supplier' 			=> $purchase->supplier,
-                'warehouse_id' 		=> $purchase->warehouse_id,
-                'note' 				=> $note,
-                'total' 			=> $this->erp->formatDecimal($total) ? $this->erp->formatDecimal($total):0,
-                'product_discount' 	=> $this->erp->formatDecimal($product_discount),
-                'order_discount_id' => $order_discount_id ? $order_discount_id : 0,
-                'order_discount' 	=> $order_discount ? $order_discount : 0,
-                'total_discount' 	=> $total_discount ? $total_discount : 0,
-                'product_tax' 		=> $this->erp->formatDecimal($product_tax),
-                'order_tax_id' 		=> $order_tax_id ? $order_tax_id : 0,
-                'order_tax' 		=> $order_tax ? $order_tax : 0,
-                'total_tax' 		=> $total_tax ? $total_tax : 0,
-                'shipping' 			=> $shipping ? $shipping : 0,
-                'surcharge' 		=> $this->erp->formatDecimal($return_surcharge),
-                'grand_total' 		=> $grand_total ? $grand_total : 0,
-				'old_grand_total' 	=> $olo_total ? $olo_total : 0,
-                'created_by' 		=> $this->session->userdata('user_id'),
-                'biller_id' 		=> $this->input->post('biller'),
-				'paid' 			    => $this->erp->formatDecimal($this->input->post('amount-paid'))
-            );
-
+					if($debit[$i]>0) {
+						$amount  = $debit[$i];
+						$total  += $debit[$i];
+					}
+					$data[] = array(
+						'tran_type' 	=> 'PURCHASES-RETURN',
+						'tran_no' 		=> $tran_no,
+						'account_code' 	=> $account_code[$i],
+						'tran_date' 	=> $date,
+						'reference_no' 	=> $reference,
+						'description' 	=> $description,
+						'amount' 		=> $amount * (-1),
+						'biller_id' 	=> $biller_id,
+						'sale_id' 		=> $this->input->post('customer_invoices'),
+						'customer_id' 	=> $this->input->post('customers')
+						);
+				}
+				
+				$this->purchases_model->addJournal($data);
+				
+				if ($this->Settings->tax2 != 0) {
+					$order_tax_id = $this->input->post('order_tax');
+					if ($order_tax_details = $this->site->getTaxRateByID($order_tax_id)) {
+						if ($order_tax_details->type == 2) {
+							$order_tax = $this->erp->formatPurDecimal($order_tax_details->rate);
+						}
+						if ($order_tax_details->type == 1) {
+							$order_tax = $this->erp->formatPurDecimal((($total) * $order_tax_details->rate) / 100);
+						}
+					}
+				} else {
+					$order_tax_id = null;
+				}
+				
+				$total_tax = $this->erp->formatPurDecimal($order_tax);
+				$grand_total = $this->erp->formatPurDecimal(($total) + $total_tax);
+				if($payment_status=="pending" || $payment_status=="due"){
+					$paid_by = '';
+				}
+				$data = array(
+					'biller_id'    			=> $biller_id,
+					'reference_no' 			=> $reference,
+					'purchase_id' 			=> $id,
+					//'payment_term'	 	=> $payment_term,
+					'date'         			=> $date,
+					'supplier_id' 			=> $purchase->supplier_id,
+					'supplier' 				=> $purchase->supplier,
+					'warehouse_id' 			=> $purchase->warehouse_id,
+					'note'         			=> $note,
+					'total'        			=> $this->erp->formatPurDecimal($total),
+					'product_discount' 		=> $this->erp->formatPurDecimal($product_discount),
+					'order_discount_id' 	=> $order_discount_id,
+					'order_discount' 		=> $order_discount,
+					'total_discount' 		=> $total_discount,
+					'product_tax' 			=> $this->erp->formatPurDecimal($product_tax),
+					'order_tax_id' 			=> $order_tax_id,
+					'order_tax' 			=> $order_tax,
+					'total_tax' 			=> $total_tax,
+					'shipping' 				=> $this->erp->formatPurDecimal($shipping),
+					'grand_total' 			=> $grand_total,
+					'paid' 					=> 'due',
+					'created_by' 			=> $this->session->userdata('user_id'),
+					'sale_id' 				=> $this->input->post('customer_invoices'),
+					'customer_id' 			=> $this->input->post('customers')
+				);
+			 
+			}
 			if ($this->input->post('amount-paid') && $this->input->post('amount-paid') > 0) {
                 $payment = array(
                     'date' 			=> $date,
@@ -660,37 +771,55 @@ class Purchases extends MY_Controller
             }
 			
             $inv_items = $this->purchases_model->getAllPurchaseItems($id);
-			
-            $c = rand(100000, 9999999);
-            foreach ($inv_items as $item) {
-                $row = $this->site->getProductByID($item->product_id);
-                $row->expiry = (($item->expiry && $item->expiry != '0000-00-00') ? $this->erp->fsd($item->expiry) : '');
-                $row->qty = $item->quantity;
-                $row->oqty = $item->quantity;
-                $row->purchase_item_id = $item->id;
-                $row->supplier_part_no = $item->supplier_part_no;
-                $row->received = $item->quantity_received ? $item->quantity_received : $item->quantity;
-                $row->quantity_balance = $item->quantity_balance + ($item->quantity-$row->received);
-                $row->discount = $item->discount ? $item->discount : '0';
-                $options = $this->purchases_model->getProductOptions($row->id);
-                $row->option = !empty($item->option_id) ? $item->option_id : '';
-                $row->real_unit_cost = $item->real_unit_cost;
-                $row->cost = $this->erp->formatDecimal($item->net_unit_cost + ($item->item_discount / $item->quantity));
-                $row->tax_rate = $item->tax_rate_id;
-                unset($row->details, $row->product_details, $row->price, $row->file, $row->product_group_id);
-                $ri = $this->Settings->item_addition ? $row->id : $c;
-                if ($row->tax_rate) {
-                    $tax_rate = $this->site->getTaxRateByID($row->tax_rate);
-                    $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => $tax_rate, 'options' => $options,'item_tax'=>$item->item_tax, 'net_unit_cost' => $item->net_unit_cost, 'unit_cost' => $item->unit_cost);
-                } else {
-                    $pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => false, 'options' => $options,'item_tax'=>$item->item_tax,'net_unit_cost'=>$item->net_unit_cost, 'unit_cost' => $item->unit_cost);
-                }
-                $c++;
+			if($type_of_po == "po"){
+				$c = rand(100000, 9999999);
+				foreach ($inv_items as $item) {
+					$row = $this->site->getProductByID($item->product_id);
+					$row->expiry = (($item->expiry && $item->expiry != '0000-00-00') ? $this->erp->fsd($item->expiry) : '');
+					$row->qty = $item->quantity;
+					$row->oqty = $item->quantity;
+					$row->purchase_item_id = $item->id;
+					$row->supplier_part_no = $item->supplier_part_no;
+					$row->received = $item->quantity_received ? $item->quantity_received : $item->quantity;
+					$row->quantity_balance = $item->quantity_balance + ($item->quantity-$row->received);
+					$row->discount = $item->discount ? $item->discount : '0';
+					$options = $this->purchases_model->getProductOptions($row->id);
+					$row->option = !empty($item->option_id) ? $item->option_id : '';
+					$row->real_unit_cost = $item->real_unit_cost;
+					$row->cost = $this->erp->formatDecimal($item->net_unit_cost + ($item->item_discount / $item->quantity));
+					$row->tax_rate = $item->tax_rate_id;
+					unset($row->details, $row->product_details, $row->price, $row->file, $row->product_group_id);
+					$ri = $this->Settings->item_addition ? $row->id : $c;
+					if ($row->tax_rate) {
+						$tax_rate = $this->site->getTaxRateByID($row->tax_rate);
+						$pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => $tax_rate, 'options' => $options,'item_tax'=>$item->item_tax, 'net_unit_cost' => $item->net_unit_cost, 'unit_cost' => $item->unit_cost);
+					} else {
+						$pr[$ri] = array('id' => $c, 'item_id' => $row->id, 'label' => $row->name . " (" . $row->code . ")", 'row' => $row, 'tax_rate' => false, 'options' => $options,'item_tax'=>$item->item_tax,'net_unit_cost'=>$item->net_unit_cost, 'unit_cost' => $item->unit_cost);
+					}
+					$c++;
+				}
+				$this->data['inv_items'] 	= json_encode($pr);
+			}else{
+				$this->data['inv_items'] 	= json_encode(0);
+				$inv = $this->purchases_model->getPurchaseByID($id);
+				$this->data['inv'] = $inv;
+				$this->data['customer'] = $this->site->getCustomerNameByID($inv->customer_id);
+				$this->data['sale'] = $this->site->getSaleByID($inv->sale_id);
+				$chart_acc_details = $this->purchases_model->getAllChartAccount();
+				foreach($chart_acc_details as $chart) {
+					$section_id = $chart->sectionid;
+				}
 				
-            }
+				$Transno = $this->purchases_model->getPurTranNo($id);
+				$this->data['type'] = $this->purchases_model->getAlltypes();
+				$this->data['supplier'] = $chart_acc_details;
+				$this->data['sectionacc'] = $chart_acc_details;
+				$this->data['journals'] = $this->purchases_model->getJournalByTranNo($Transno->tran_no);
+				$this->data['subacc'] = $this->purchases_model->getSubAccounts($section_id);
+			}
 			
-            $this->data['inv_items'] 	= json_encode($pr);
             $this->data['id'] 			= $id;
+            $this->data['type_of_po'] 	= $type_of_po;
 			$this->data['payment_ref'] 	= $this->site->getReference('pp');
             $this->data['reference'] 	= $this->site->getReference('rep',$inv->biller_id);
 			$this->data['referenceno'] 	= $this->purchases_model->getReferenceno($id);
@@ -5036,10 +5165,7 @@ class Purchases extends MY_Controller
 				 foreach($chart_acc_details as $chart) {
 					$section_id = $chart->sectionid;
 				 }
-				 
-				// $this->erp->print_arrays($this->purchases_model->getTranNoExp($id));
 				 $Transno = $this->purchases_model->getPurTranNo($id);
-				 //$this->erp->print_arrays($Transno);
 				 $this->data['type'] = $this->purchases_model->getAlltypes();
 				 $this->data['supplier'] = $chart_acc_details;
 				 $this->data['sectionacc'] = $chart_acc_details;
