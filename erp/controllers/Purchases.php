@@ -3375,7 +3375,7 @@ class Purchases extends MY_Controller
 			->select($this->db->dbprefix('purchases') . ".id, ".$this->db->dbprefix('purchases') . ".date, erp_purchases.reference_no, " . 
 						 $this->db->dbprefix('warehouses') . ".name as wname, erp_purchases.supplier ,
 						 erp_purchases.grand_total, 
-                        erp_return_purchases.grand_total as return_purchases,
+                        (0.00) as return_purchases,
                         erp_purchases.paid, (erp_purchases.grand_total-erp_purchases.paid) as balance, " . $this->db->dbprefix('purchases') . ".payment_status", FALSE)
                 ->from('purchases')
                 ->join('purchase_items', 'purchase_items.purchase_id=purchases.id', 'left')
