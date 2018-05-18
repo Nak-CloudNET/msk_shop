@@ -327,23 +327,27 @@ class Purchases extends MY_Controller
         $this->load->library('datatables');
         if ($warehouse_id) {
             $this->datatables
-                ->select("purchases.id, date,request_ref,order_ref,reference_no, companies.name, purchases.status, grand_total,COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
+                ->select("purchases.id, purchases.date,purchases.request_ref,order_ref,purchases.reference_no, companies.name, purchases.status,erp_purchases.grand_total,COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
                         FROM erp_return_purchases 
                         WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases, 
-                        paid-(select paid from erp_return_purchases where id=purchases.id) as paid,  
-                        (grand_total-paid-(select paid from erp_return_purchases where id=erp_purchases.id)) as balance,payment_status, opening_ap")
+                        return_purchases.paid, 
+                        (erp_purchases.grand_total-erp_purchases.paid-(select paid from erp_return_purchases where id=erp_purchases.id)) as balance,payment_status, opening_ap")
                 ->from('purchases')
 				->join('companies', 'companies.id = purchases.supplier_id', 'inner')
+                ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
                 ->where_in('warehouse_id', $warehouse_id);
         } else {
 			$this->datatables
-                ->select("purchases.id,date,request_ref,order_ref,reference_no, companies.name, purchases.status, grand_total,COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
+                ->select("purchases.id,purchases.date,purchases.request_ref,purchases.order_ref,purchases.reference_no, companies.name, erp_purchases.status, erp_purchases.grand_total,
+                    COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
                         FROM erp_return_purchases 
-                        WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases,  paid-(select paid from erp_return_purchases where id=erp_purchases.id) as paid,  
-                        (grand_total-paid-(select paid from erp_return_purchases where id=erp_purchases.id)-COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
+                        WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases,  
+                        (erp_purchases.paid-COALESCE(erp_return_purchases.paid,0)) as paid,  
+                        (erp_purchases.grand_total-erp_purchases.paid-(select paid from erp_return_purchases where id=erp_purchases.id)-COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
                         FROM erp_return_purchases 
                         WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0)) as balance, payment_status, opening_ap")
                 ->from('purchases')
+                ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
 				->join('companies', 'companies.id = purchases.supplier_id', 'inner');
 			if(isset($_REQUEST['d'])){
 				$date_c = date('Y-m-d', strtotime('+3 months'));
@@ -716,11 +720,12 @@ class Purchases extends MY_Controller
 					'total_tax' 			=> $total_tax,
 					'shipping' 				=> $this->erp->formatPurDecimal($shipping),
 					'grand_total' 			=> $grand_total,
-					'paid' 					=> 'due',
+					'paid' 					=> $this->erp->formatDecimal($this->input->post('amount-paid')),
 					'created_by' 			=> $this->session->userdata('user_id'),
 					'sale_id' 				=> $this->input->post('customer_invoices'),
 					'customer_id' 			=> $this->input->post('customers')
 				);
+                //$this->erp->print_arrays($this->data);
 			 
 			}
 			if ($this->input->post('amount-paid') && $this->input->post('amount-paid') > 0) {
@@ -1704,6 +1709,7 @@ class Purchases extends MY_Controller
         if ($this->input->get('id')) {
             $purchase_id = $this->input->get('id');
         }
+
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
         $inv = $this->purchases_model->getPurchaseByID($purchase_id);
 		/*
