@@ -404,6 +404,11 @@ class Purchases extends MY_Controller
         if ($this->form_validation->run() == true)
         {
             $purchase = $this->purchases_model->getPurchaseByID($id);
+            $update=array(
+               'status' => 'returned'
+            );
+            $this->db->where('id', $id);
+            $this->db->update('erp_purchases', $update);
             $quantity = "quantity";
             $product = "product";
             $unit_cost = "unit_cost";
@@ -416,7 +421,6 @@ class Purchases extends MY_Controller
             } else {
                 $date = date('Y-m-d H:i:s');
             }
-
             $return_surcharge = $this->input->post('return_surcharge') ? $this->input->post('return_surcharge') : 0;
             $note = $this->erp->clear_tags($this->input->post('note'));
             $shipping = $this->input->post('shipping') ? $this->input->post('shipping') : 0; 
@@ -605,7 +609,7 @@ class Purchases extends MY_Controller
 					'old_grand_total' 	=> $olo_total ? $olo_total : 0,
 					'created_by' 		=> $this->session->userdata('user_id'),
 					'biller_id' 		=> $this->input->post('biller'),
-					'paid' 			    => 0//$this->erp->formatDecimal($this->input->post('amount-paid'))
+					'paid' 			    => $this->erp->formatDecimal($this->input->post('amount-paid')),
 				);
 			}else{
 				
