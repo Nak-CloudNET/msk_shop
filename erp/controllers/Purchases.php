@@ -3084,9 +3084,7 @@ class Purchases extends MY_Controller
             $this->load->library('datatables');
             $this->datatables
                 ->select($this->db->dbprefix('companies') . ".id as idd, company, name, phone, email, count(" . $this->db->dbprefix('purchases') . ".id) as total, COALESCE(sum(grand_total), 0) as total_amount, COALESCE(sum(paid), 0) as paid,
-                    COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
-                        FROM erp_return_purchases 
-                        WHERE erp_return_purchases.supplier_id = erp_companies.id), 0) as return_purchases, ( COALESCE(sum(grand_total), 0) - COALESCE(sum(paid), 0)) as balance", FALSE)
+                    COALESCE(null, 0.00) as return_purchases, ( COALESCE(sum(grand_total), 0) - COALESCE(sum(paid), 0)) as balance", FALSE)
                 ->from("companies")
                 ->join('purchases', 'purchases.supplier_id=companies.id')
                 ->where('companies.group_name', 'supplier')
