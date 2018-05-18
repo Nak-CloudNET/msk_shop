@@ -3383,7 +3383,7 @@ class Purchases extends MY_Controller
                 ->join('purchase_items', 'purchase_items.purchase_id=purchases.id', 'left')
                 ->join('return_purchases', 'return_purchases.purchase_id=purchases.id', 'left')
                 ->join('warehouses', 'warehouses.id=purchases.warehouse_id', 'left')
-				->join('companies', 'companiess.id = purchase_items.supplier_id', 'left')
+				->join('companies', 'companies.id = purchase_items.supplier_id', 'left')
 				->where(array('purchases.status' => 'received', 'purchases.payment_status <>' => 'paid'))
                 ->group_by('purchases.id');
 			
