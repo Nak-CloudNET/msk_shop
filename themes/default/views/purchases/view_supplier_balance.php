@@ -53,7 +53,7 @@
             },{"mRender": fld}, null,null, {
                     "bSearchable": false,
                     "mRender": pqFormatPurchaseReports
-                }, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status},{"bSortable": false}],
+                }, {"mRender": currencyFormat}, {"mRender": currencyFormat},null,{"mRender": currencyFormat}, {"mRender": row_status},{"bSortable": false}],
                 "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
                     var gtotal = 0, paid = 0, balance = 0;
                     for (var i = 0; i < aaData.length; i++) {
@@ -222,6 +222,7 @@
                                     <th><?= lang("warehouse"); ?></th>
                                     <th><?= lang("supplier"); ?></th>
                                     <th><?= lang("grand_total"); ?></th>
+                                    <th><?= lang("returns"); ?></th>
                                     <th><?= lang("paid"); ?></th>
                                     <th><?= lang("balance"); ?></th>
                                     <th><?= lang("payment_status"); ?></th>
@@ -238,6 +239,7 @@
 									<th style="min-width:30px; width: 30px; text-align: center;">
 										<input class="checkbox checkft" type="checkbox" name="check"/>
 									</th>
+                                    <th></th>
                                     <th></th>
                                     <th></th>
                                     <th></th>

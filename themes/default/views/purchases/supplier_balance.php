@@ -33,7 +33,7 @@
             }, {"mRender": currencyFormat, "bSearchable": false}, {
                 "mRender": currencyFormat,
                 "bSearchable": false
-            }, {"mRender": currencyFormat, "bSearchable": false}, {"bSortable": false}],
+            },null, {"mRender": currencyFormat, "bSearchable": false}, {"bSortable": false}],
 			"fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
 				var total_purchases = 0, tAmount = 0, paid = 0, balance = 0;
 				for (var i = 0; i < aaData.length; i++) {
@@ -151,6 +151,7 @@ if ($Owner) {
                             <th><?= lang("total_purchases"); ?></th>
                             <th><?= lang("total_amount"); ?></th>
                             <th><?= lang("paid"); ?></th>
+                            <th><?= lang("returns"); ?></th>
                             <th><?= lang("balance"); ?></th>
                             <th style="width:85px;"><?= lang("actions"); ?></th>
                         </tr>
@@ -172,6 +173,7 @@ if ($Owner) {
                             <th class="text-center"><?= lang("total_purchases"); ?></th>
                             <th class="text-center"><?= lang("total_amount"); ?></th>
                             <th class="text-center"><?= lang("paid"); ?></th>
+                            <th class="text-center"><?= lang("returns"); ?></th>
                             <th class="text-center"><?= lang("balance"); ?></th>
                             <th style="width:85px; text-align: center;"><?= lang("actions"); ?></th>
                         </tr>

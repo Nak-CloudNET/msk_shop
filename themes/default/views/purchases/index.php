@@ -434,8 +434,8 @@
                             <th><?php echo $this->lang->line("supplier"); ?></th>
 							<th><?php echo $this->lang->line("status"); ?></th>
                             <th><?php echo $this->lang->line("grand_total"); ?></th>
-                            <th><?php echo $this->lang->line("paid"); ?></th>
                             <th><?php echo $this->lang->line("returns"); ?></th>
+                            <th><?php echo $this->lang->line("paid"); ?></th>
                             <th><?php echo $this->lang->line("balance"); ?></th>
                             <th><?php echo $this->lang->line("payment_status"); ?></th>
                             <th></th>
@@ -459,8 +459,8 @@
                             <th></th>
 							<th></th>
                             <th><?php echo $this->lang->line("grand_total"); ?></th>
-                            <th><?php echo $this->lang->line("paid"); ?></th>
                             <th><?php echo $this->lang->line("returns"); ?></th>
+                            <th><?php echo $this->lang->line("paid"); ?></th>
                             <th><?php echo $this->lang->line("balance"); ?></th>
                             <th></th>
                             <th></th>
