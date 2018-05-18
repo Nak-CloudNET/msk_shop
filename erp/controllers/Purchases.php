@@ -327,13 +327,17 @@ class Purchases extends MY_Controller
         $this->load->library('datatables');
         if ($warehouse_id) {
             $this->datatables
-                ->select("purchases.id, date,request_ref,order_ref,reference_no, companies.name, purchases.status, grand_total, paid, (grand_total-paid) as balance,payment_status, opening_ap")
+                ->select("purchases.id, date,request_ref,order_ref,reference_no, companies.name, purchases.status, grand_total, paid, COALESCE((SELECT SUM(erp_return_purchases.paid) 
+                        FROM erp_return_purchases 
+                        WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases, (grand_total-paid) as balance,payment_status, opening_ap")
                 ->from('purchases')
 				->join('companies', 'companies.id = purchases.supplier_id', 'inner')
                 ->where_in('warehouse_id', $warehouse_id);
         } else {
 			$this->datatables
-                ->select("purchases.id,date,request_ref,order_ref,reference_no, companies.name, purchases.status, grand_total, paid, (grand_total-paid) as balance, payment_status, opening_ap")
+                ->select("purchases.id,date,request_ref,order_ref,reference_no, companies.name, purchases.status, grand_total, paid, COALESCE((SELECT SUM(erp_return_purchases.paid) 
+                        FROM erp_return_purchases 
+                        WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases, (grand_total-paid) as balance, payment_status, opening_ap")
                 ->from('purchases')
 				->join('companies', 'companies.id = purchases.supplier_id', 'inner');
 			if(isset($_REQUEST['d'])){

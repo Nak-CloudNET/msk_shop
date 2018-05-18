@@ -181,4 +181,5 @@ $lang['item_description']					= "ITEM DESCRIPTION";
 $lang['unit']								= "UNIT";
 $lang['qty'] 								= "QTY";
 $lang['total']								= "Total";
-$lang['received_item']				= "Received Purchase Items";
+$lang['received_item']						= "Received Purchase Items";
+$lang['returns']							= "Return";
