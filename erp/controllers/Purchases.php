@@ -729,9 +729,17 @@ class Purchases extends MY_Controller
 			 
 			}
 			if ($this->input->post('amount-paid') && $this->input->post('amount-paid') > 0) {
+                if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')) {
+                $biller_id = $this->site->get_setting()->default_biller;
+                $rreference = $this->site->getReference('sp',$biller_id);
+            } else {
+                $biller_id = $this->session->userdata('biller_id');
+                $rreference = $this->site->getReference('sp',$biller_id);
+            }
                 $payment = array(
+                    'purchase_id'   => $id,
                     'date' 			=> $date,
-                    'reference_no' 	=> $this->input->post('payment_ref'),
+                    'reference_no' 	=> $rreference,
                     'amount' 		=> $this->erp->formatDecimal($this->input->post('amount-paid')),
                     'paid_by' 		=> $this->input->post('paid_by'),
                     'cheque_no' 	=> $this->input->post('cheque_no'),
