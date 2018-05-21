@@ -171,7 +171,7 @@
             {column_number: 4, filter_default_label: "[<?=lang('ref_no');?>]", filter_type: "text", data: []},
 			{column_number: 5, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
 			{column_number: 6, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
-			{column_number: 11, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
+			{column_number: 10, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
             
         ], "footer");
 
@@ -444,7 +444,7 @@
                         </thead>
                         <tbody>
                         <tr>
-                            <td colspan="11" class="dataTables_empty"><?=lang('loading_data_from_server');?></td>
+                            <td colspan="10" class="dataTables_empty"><?=lang('loading_data_from_server');?></td>
                         </tr>
                         </tbody>
                         <tfoot class="dtFilter">

@@ -933,6 +933,188 @@ $('.net_cost, .quantity').live('change',function(){
 	var getTotal = formatPurDecimal(((parseFloat(net_price) * parseFloat(quantity))  + parseFloat(tax_pay)));
 	row.find('.get_total').text(getTotal);
 });
+/*
+function loadItems() {
+
+    if (localStorage.getItem('poitems')) {
+        total = 0;
+        count = 1;
+        an = 1;
+        product_tax = 0;
+        invoice_tax = 0;
+        product_discount = 0;
+        order_discount = 0;
+        total_discount = 0;
+        $("#poTable tbody").empty();
+        poitems = JSON.parse(localStorage.getItem('poitems'));
+
+        $.each(poitems, function () {
+
+            var item = this;
+            var item_id = site.settings.item_addition == 1 ? item.item_id : item.id;
+            poitems[item_id] = item;
+
+            var product_id = item.row.id, item_type = item.row.type, combo_items = item.combo_items, item_cost = item.row.cost, item_qty = item.row.qty, item_bqty = item.row.quantity_balance, item_expiry = item.row.expiry, item_tax_method = item.row.tax_method, item_ds = item.row.discount, item_discount = 0, item_option = item.row.option, item_code = item.row.code, item_name = item.row.name.replace(/"/g, "&#034;").replace(/'/g, "&#039;");
+            
+            var supplier = localStorage.getItem('posupplier'), belong = false;
+
+                if (supplier == item.row.supplier1) {
+                    belong = true;
+                } else
+                if (supplier == item.row.supplier2) {
+                    belong = true;
+                } else
+                if (supplier == item.row.supplier3) {
+                    belong = true;
+                } else
+                if (supplier == item.row.supplier4) {
+                    belong = true;
+                } else
+                if (supplier == item.row.supplier5) {
+                    belong = true;
+                }
+                var unit_cost = item.row.real_unit_cost;
+
+                var ds = item_ds ? item_ds : '0';
+                if (ds.indexOf("%") !== -1) {
+                    var pds = ds.split("%");
+                    if (!isNaN(pds[0])) {
+                        item_discount = formatPurDecimal(parseFloat(((unit_cost) * parseFloat(pds[0])) / 100));
+                    } else {
+                        item_discount = formatPurDecimal(ds);
+                    }
+                } else {
+                     item_discount = parseFloat(ds);
+                }
+                product_discount += parseFloat(item_discount * item_qty);
+
+                unit_cost = formatPurDecimal(unit_cost-item_discount);
+                var pr_tax = item.tax_rate;
+                var pr_tax_val = 0, pr_tax_rate = 0;
+                if (site.settings.tax1 == 1) {
+                    if (pr_tax !== false) {
+                        if (pr_tax.type == 1) {
+
+                            if (item_tax_method == '0') {
+                                pr_tax_val = formatPurDecimal(((unit_cost) * parseFloat(pr_tax.rate)) / (100 + parseFloat(pr_tax.rate)));
+                                pr_tax_rate = formatPurDecimal(pr_tax.rate) + '%';
+                            } else {
+                                pr_tax_val = formatPurDecimal(((unit_cost) * parseFloat(pr_tax.rate)) / 100);
+                                pr_tax_rate = formatPurDecimal(pr_tax.rate) + '%';
+                            }
+
+                        } else if (pr_tax.type == 2) {
+
+                            pr_tax_val = parseFloat(pr_tax.rate);
+                            pr_tax_rate = pr_tax.rate;
+
+                        }
+                        product_tax += pr_tax_val * item_qty;
+                    }
+                }
+                item_cost = item_tax_method == 0 ? formatPurDecimal(unit_cost-pr_tax_val) : formatPurDecimal(unit_cost);
+                unit_cost = formatPurDecimal(unit_cost+item_discount);
+                var sel_opt = '';
+				var variant_id = '';
+                $.each(item.options, function () {
+                    if(this.id == item_option) {
+                        sel_opt = this.name;
+						variant_id = this.id;
+						
+                    }
+                });
+
+            var row_no = (new Date).getTime();
+            var newTr = $('<tr id="row_' + row_no + '" class="row_' + item_id + '" data-item-id="' + item_id + '"></tr>');
+            tr_html = '<td><input name="product[]" type="hidden" class="rcode" value="' + item_code + '"><input name="product_name[]" type="hidden" class="rname" value="' + item_name + '"><input name="product_option[]" type="hidden" class="roption" value="' + item_option + '"><span class="sname" id="name_' + row_no + '">' + item_name + ' (' + item_code + ')'+(sel_opt != '' ? ' ('+sel_opt+')' : '')+'</span> <i class="pull-right fa fa-edit tip edit" id="' + row_no + '" data-item="' + item_id + '" title="Edit" style="cursor:pointer;"></i></td>';
+            if (site.settings.product_expiry == 1) {
+                tr_html += '<td><input class="form-control date rexpiry" name="expiry[]" type="text" value="' + item_expiry + '" data-id="' + row_no + '" data-item="' + item_id + '" id="expiry_' + row_no + '"></td>';
+            }
+            tr_html += '<td class="text-right"><input class="form-control input-sm text-right rcost" name="net_cost[]" type="hidden" id="cost_' + row_no + '" value="' + item_cost + '"><input class="rucost" name="unit_cost[]" type="hidden" value="' + unit_cost + '"><input class="realucost" name="real_unit_cost[]" type="hidden" value="' + item.row.real_unit_cost + '"><span class="text-right scost" id="scost_' + row_no + '">' + formatPurDecimal(item_cost) + '</span></td>';
+            tr_html += '<td><input name="quantity_balance[]" type="hidden" class="rbqty" value="' + item_bqty + '"><input class="form-control text-center rquantity" name="quantity[]" type="text" value="' + formatPurDecimal(item_qty) + '" data-id="' + row_no + '" data-item="' + item_id + '" id="quantity_' + row_no + '" onClick="this.select();"></td>';
+			tr_html += '<input type="hidden" name="variant_id[]" value="'+ variant_id +'">';
+            if (site.settings.product_discount == 1) {
+                tr_html += '<td class="text-right"><input class="form-control input-sm rdiscount" name="product_discount[]" type="hidden" id="discount_' + row_no + '" value="' + item_ds + '"><span class="text-right sdiscount text-danger" id="sdiscount_' + row_no + '">' + formatPurDecimal(0 - (item_discount * item_qty)) + '</span></td>';
+            }
+            if (site.settings.tax1 == 1) {
+                tr_html += '<td class="text-right"><input class="form-control input-sm text-right rproduct_tax" name="product_tax[]" type="hidden" id="product_tax_' + row_no + '" value="' + pr_tax.id + '"><span class="text-right sproduct_tax" id="sproduct_tax_' + row_no + '">' + (pr_tax_rate ? '(' + pr_tax_rate + ')' : '') + ' ' + formatPurDecimal(pr_tax_val * item_qty) + '</span></td>';
+            }
+            tr_html += '<td class="text-right"><span class="text-right ssubtotal" id="subtotal_' + row_no + '">' + formatPurDecimal(((parseFloat(item_cost) + parseFloat(pr_tax_val)) * parseFloat(item_qty))) + '</span></td>';
+            tr_html += '<td class="text-center"><i class="fa fa-times tip podel" id="' + row_no + '" title="Remove" style="cursor:pointer;"></i></td>';
+            newTr.html(tr_html);
+            newTr.prependTo("#poTable");
+            //total += parseFloat(item_cost * item_qty);
+            total += formatPurDecimal(((parseFloat(item_cost) + parseFloat(pr_tax_val)) * parseFloat(item_qty)));
+            count += parseFloat(item_qty);
+            an++;
+            if(!belong) 
+                $('#row_' + row_no).addClass('danger');  
+            
+        });
+
+        var col = 2;
+        if (site.settings.product_expiry == 1) { col++; }
+        var tfoot = '<tr id="tfoot" class="tfoot active"><th colspan="'+col+'">Total</th><th class="text-center">' + formatNumber(parseFloat(count) - 1) + '</th>';
+        if (site.settings.product_discount == 1) {
+            tfoot += '<th class="text-right">'+formatPurDecimal(product_discount)+'</th>';
+        }
+        if (site.settings.tax1 == 1) {
+            tfoot += '<th class="text-right">'+formatPurDecimal(product_tax)+'</th>';
+        }
+        tfoot += '<th class="text-right">'+formatPurDecimal(total)+'</th><th class="text-center"><i class="fa fa-trash-o" style="opacity:0.5; filter:alpha(opacity=50);"></i></th></tr>';
+        $('#poTable tfoot').html(tfoot);
+
+        // Order level discount calculations        
+        if (podiscount = localStorage.getItem('podiscount')) {
+            var ds = podiscount;
+            if (ds.indexOf("%") !== -1) {
+                var pds = ds.split("%");
+                if (!isNaN(pds[0])) {
+                    order_discount = ((total) * parseFloat(pds[0])) / 100;
+                } else {
+                    order_discount = parseFloat(ds);
+                }
+            } else {
+                order_discount = parseFloat(ds);
+            }
+        }
+
+        // Order level tax calculations    
+        if (site.settings.tax2 != 0) {
+            if (potax2 = localStorage.getItem('potax2')) {
+                $.each(tax_rates, function () {
+                    if (this.id == potax2) {
+                        if (this.type == 2) {
+                            invoice_tax = parseFloat(this.rate);
+                        }
+                        if (this.type == 1) {
+                            invoice_tax = parseFloat(((total - order_discount) * this.rate) / 100);
+                        }
+                    }
+                });
+            }
+        }
+        total_discount = parseFloat(order_discount + product_discount);
+        // Totals calculations after item addition
+        var gtotal = ((total + invoice_tax) - order_discount) + shipping;
+        $('#total').text(formatPurDecimal(total));
+        $('#titems').text((an-1)+' ('+(parseFloat(count)-1)+')');
+        $('#tds').text(formatPurDecimal(order_discount));
+        if (site.settings.tax1) {
+            $('#ttax1').text(formatPurDecimal(product_tax));
+        }
+        if (site.settings.tax2 != 0) {
+            $('#ttax2').text(formatPurDecimal(invoice_tax));
+        }
+        $('#gtotal').text(formatPurDecimal(gtotal));
+        if (an > site.settings.bc_fix && site.settings.bc_fix != 0) {
+            $("html, body").animate({scrollTop: $('#poTable').offset().top - 150}, 500);
+            $(window).scrollTop($(window).scrollTop() + 1);
+        }
+        //audio_success.play();
+    }
+}
+*/
 
 /* -----------------------------
  * Add Purchase Iten Function

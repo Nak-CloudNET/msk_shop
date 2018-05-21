@@ -797,7 +797,3 @@ $lang["estimate_profit"]          			= "Estimat Profit";
 $lang["delivery_alerts"]					= "Delivery Alerts";
 $lang["Product_sale_top"]					= "Product Sale Top";
 $lang["product_profit"] 					= "Product Profit";
-$lang["total_order_discount"] 				= "Total Order Discount";
-$lang["total_overhead"] 					= "Total Overhead";
-$lang["total_shipping"] 					= "Total Shipping";
-$lang["total_gross_margin"] 				= "Total Gross Margin";

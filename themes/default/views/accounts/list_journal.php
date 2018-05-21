@@ -60,7 +60,12 @@
 			null, 
 			null, 
 			null, 
-			null,
+			{"mRender": function ( data, type, row ) {
+                    var a = data.replace("&lt;p&gt;", '');
+                    var b = a.replace("&lt;&sol;p&gt;", '');
+                    return b.split("&lt;br&gt;").join("<br/>");
+                }
+            },
 			{"mRender":currencyFormat},
 			{"mRender":currencyFormat}, 
 			{"bSortable": false}],

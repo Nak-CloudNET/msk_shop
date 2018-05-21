@@ -373,16 +373,6 @@
                             </a>
                         </div>
 						<?php } ?>
-						<?php if($Owner || $Admin || $GP['purchases-delete']) { ?>
-                        <!-- <div class="btn-group">
-                            <a href="#" class="tip btn btn-danger bpo" title="<b><?//= $this->lang->line("delete") ?></b>"
-                                data-content="<div style='width:150px;'><p><?//= lang('r_u_sure') ?></p><a class='btn btn-danger' href='<?//= site_url('purchases/delete/' . $inv->id) ?>'><?//= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?//= lang('no') ?></button></div>"
-                                data-html="true" data-placement="top">
-                                <!-- <i class="fa fa-trash-o"></i> -->
-                                <!-- <span class="hidden-sm hidden-xs"><?//= lang('return_purchase') ?></span> -->
-                            </a>
-                        </div> -->
-						<?php } ?>
                     </div>
                 </div>
             <?php } ?>

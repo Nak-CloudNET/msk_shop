@@ -170,28 +170,39 @@ class Purchases extends MY_Controller
         $this->load->library('datatables');
         if ($warehouse_id) {
             $this->datatables
-                ->select("purchases.id, date,request_ref,order_ref,reference_no, companies.name, grand_total,(SELECT SUM((COALESCE(p.amount,0)) FROM erp_payments as p WHERE p.purchase_id = erp_purchases.id AND p.paid_by = 'deposit' ) as total_deposit,(SELECT SUM((COALESCE(p.amount,0)) FROM erp_payments as p WHERE p.purchase_id = erp_purchases.id AND p.paid_by <> 'deposit' ) as paid, (grand_total-paid) as balance,payment_status")
+                ->select("purchases.id, purchases.date,purchases.request_ref,order_ref,purchases.reference_no, companies.name, purchases.status,erp_purchases.grand_total,COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
+                        FROM erp_return_purchases 
+                        WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases, 
+                        return_purchases.paid, 
+                        (erp_purchases.grand_total-erp_purchases.paid-(select paid from erp_return_purchases where id=erp_purchases.id)) as balance,payment_status, opening_ap")
                 ->from('purchases')
-				->join('companies', 'companies.id = purchases.supplier_id', 'inner')
+                ->join('companies', 'companies.id = purchases.supplier_id', 'inner')
+                ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
                 ->where_in('warehouse_id', $warehouse_id);
         } else {
-			$this->datatables
-                ->select("purchases.id,date,request_ref,order_ref,reference_no, companies.name,
-				grand_total,(SELECT SUM(COALESCE(p.amount,0)) FROM erp_payments as p WHERE p.purchase_id = erp_purchases.id AND p.paid_by = 'deposit' ) as total_deposit,(SELECT SUM(COALESCE(p.amount,0)) FROM erp_payments as p WHERE p.purchase_id = erp_purchases.id AND p.paid_by <> 'deposit' ) as paid, (grand_total-paid) as balance,payment_status") 
+            $this->datatables
+                ->select("purchases.id,purchases.date,purchases.request_ref,purchases.order_ref,purchases.reference_no, companies.name, erp_purchases.status, erp_purchases.grand_total,
+                    COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
+                        FROM erp_return_purchases 
+                        WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases,  
+                        (erp_purchases.paid-COALESCE(erp_return_purchases.paid,0)) as paid,  
+                        (erp_purchases.grand_total-erp_purchases.paid-(select paid from erp_return_purchases where id=erp_purchases.id)-COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
+                        FROM erp_return_purchases 
+                        WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0)) as balance, payment_status, opening_ap")
                 ->from('purchases')
-				->join('companies', 'companies.id = purchases.supplier_id', 'inner');
-				
-			if(isset($_REQUEST['d'])){
-				$date_c = date('Y-m-d', strtotime('+3 months'));
-				$date = $_GET['d'];
-				$date1 = str_replace("/", "-", $date);
-				$date =  date('Y-m-d', strtotime($date1));
-				
-				$this->datatables
-				->where("date >=", $date)
-				->where('DATE_SUB(date, INTERVAL 1 DAY) <= CURDATE()')
-				->where('purchases.payment_term <>', 0);
-			}
+                ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
+                ->join('companies', 'companies.id = purchases.supplier_id', 'inner');
+            if(isset($_REQUEST['d'])){
+                $date_c = date('Y-m-d', strtotime('+3 months'));
+                $date = $_GET['d'];
+                $date1 = str_replace("/", "-", $date);
+                $date =  date('Y-m-d', strtotime($date1));
+                
+                $this->datatables
+                ->where("date >=", $date)
+                ->where('DATE_SUB(date, INTERVAL 1 DAY) <= CURDATE()')
+                ->where('purchases.payment_term <>', 0);
+            }
         }
 		
 		if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
@@ -327,35 +338,39 @@ class Purchases extends MY_Controller
         $this->load->library('datatables');
         if ($warehouse_id) {
             $this->datatables
-                ->select("purchases.id, date,request_ref,order_ref,reference_no, companies.name, purchases.status, grand_total,COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
+                ->select("purchases.id, purchases.date,purchases.request_ref,order_ref,purchases.reference_no, companies.name, purchases.status,erp_purchases.grand_total,COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
                         FROM erp_return_purchases 
                         WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases, 
-                        paid-(select paid from erp_return_purchases where id=purchases.id) as paid,  
-                        (grand_total-paid-(select paid from erp_return_purchases where id=erp_purchases.id)) as balance,payment_status, opening_ap")
+                        return_purchases.paid, 
+                        (erp_purchases.grand_total-erp_purchases.paid-(select paid from erp_return_purchases where id=erp_purchases.id)) as balance,payment_status, opening_ap")
                 ->from('purchases')
-				->join('companies', 'companies.id = purchases.supplier_id', 'inner')
+                ->join('companies', 'companies.id = purchases.supplier_id', 'inner')
+                ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
                 ->where_in('warehouse_id', $warehouse_id);
         } else {
-			$this->datatables
-                ->select("purchases.id,date,request_ref,order_ref,reference_no, companies.name, purchases.status, grand_total,COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
+            $this->datatables
+                ->select("purchases.id,purchases.date,purchases.request_ref,purchases.order_ref,purchases.reference_no, companies.name, erp_purchases.status, erp_purchases.grand_total,
+                    COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
                         FROM erp_return_purchases 
-                        WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases,  paid-(select paid from erp_return_purchases where id=erp_purchases.id) as paid,  
-                        (grand_total-paid-(select paid from erp_return_purchases where id=erp_purchases.id)-COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
+                        WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases,  
+                        (erp_purchases.paid-COALESCE(erp_return_purchases.paid,0)) as paid,  
+                        (erp_purchases.grand_total-erp_purchases.paid-(select paid from erp_return_purchases where id=erp_purchases.id)-COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
                         FROM erp_return_purchases 
                         WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0)) as balance, payment_status, opening_ap")
                 ->from('purchases')
-				->join('companies', 'companies.id = purchases.supplier_id', 'inner');
-			if(isset($_REQUEST['d'])){
-				$date_c = date('Y-m-d', strtotime('+3 months'));
-				$date = $_GET['d'];
-				$date1 = str_replace("/", "-", $date);
-				$date =  date('Y-m-d', strtotime($date1));
-				
-				$this->datatables
-				->where("date >=", $date)
-				->where('DATE_SUB(date, INTERVAL 1 DAY) <= CURDATE()')
-				->where('purchases.payment_term <>', 0);
-			}
+                ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
+                ->join('companies', 'companies.id = purchases.supplier_id', 'inner');
+            if(isset($_REQUEST['d'])){
+                $date_c = date('Y-m-d', strtotime('+3 months'));
+                $date = $_GET['d'];
+                $date1 = str_replace("/", "-", $date);
+                $date =  date('Y-m-d', strtotime($date1));
+                
+                $this->datatables
+                ->where("date >=", $date)
+                ->where('DATE_SUB(date, INTERVAL 1 DAY) <= CURDATE()')
+                ->where('purchases.payment_term <>', 0);
+            }
         }
 		
 		if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
@@ -716,11 +731,12 @@ class Purchases extends MY_Controller
 					'total_tax' 			=> $total_tax,
 					'shipping' 				=> $this->erp->formatPurDecimal($shipping),
 					'grand_total' 			=> $grand_total,
-					'paid' 					=> 'due',
+					'paid' 					=> $this->erp->formatDecimal($this->input->post('amount-paid')),
 					'created_by' 			=> $this->session->userdata('user_id'),
 					'sale_id' 				=> $this->input->post('customer_invoices'),
 					'customer_id' 			=> $this->input->post('customers')
 				);
+                //$this->erp->print_arrays($this->data);
 			 
 			}
 			if ($this->input->post('amount-paid') && $this->input->post('amount-paid') > 0) {
@@ -3078,9 +3094,7 @@ class Purchases extends MY_Controller
             $this->load->library('datatables');
             $this->datatables
                 ->select($this->db->dbprefix('companies') . ".id as idd, company, name, phone, email, count(" . $this->db->dbprefix('purchases') . ".id) as total, COALESCE(sum(grand_total), 0) as total_amount, COALESCE(sum(paid), 0) as paid,
-                    COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
-                        FROM erp_return_purchases 
-                        WHERE erp_return_purchases.supplier_id = erp_companies.id), 0) as return_purchases, ( COALESCE(sum(grand_total), 0) - COALESCE(sum(paid), 0)) as balance", FALSE)
+                    (0.00) as return_purchases, ( COALESCE(sum(grand_total), 0) - COALESCE(sum(paid), 0)) as balance", FALSE)
                 ->from("companies")
                 ->join('purchases', 'purchases.supplier_id=companies.id')
                 ->where('companies.group_name', 'supplier')
@@ -3368,17 +3382,17 @@ class Purchases extends MY_Controller
             $this->load->library('datatables');
 
 			$this->datatables
-			->select($this->db->dbprefix('purchases') . ".id, ".$this->db->dbprefix('purchases') . ".date, erp_purchases.reference_no, " . 
-						 $this->db->dbprefix('warehouses') . ".name as wname, erp_purchases.supplier ,
-						 erp_purchases.grand_total, 
-                        erp_return_purchases.grand_total as return_purchases,
+            ->select($this->db->dbprefix('purchases') . ".id, ".$this->db->dbprefix('purchases') . ".date, erp_purchases.reference_no, " . 
+                         $this->db->dbprefix('warehouses') . ".name as wname, erp_purchases.supplier ,
+                         erp_purchases.grand_total, 
+                        (0.00) as return_purchases,
                         erp_purchases.paid, (erp_purchases.grand_total-erp_purchases.paid) as balance, " . $this->db->dbprefix('purchases') . ".payment_status", FALSE)
                 ->from('purchases')
                 ->join('purchase_items', 'purchase_items.purchase_id=purchases.id', 'left')
                 ->join('return_purchases', 'return_purchases.purchase_id=purchases.id', 'left')
                 ->join('warehouses', 'warehouses.id=purchases.warehouse_id', 'left')
-				->join('companies', 'companiess.id = purchase_items.supplier_id', 'left')
-				->where(array('purchases.status' => 'received', 'purchases.payment_status <>' => 'paid'))
+                ->join('companies', 'companies.id = purchase_items.supplier_id', 'left')
+                ->where(array('purchases.status' => 'received', 'purchases.payment_status <>' => 'paid'))
                 ->group_by('purchases.id');
 			
 			if ($supplier) {
@@ -5184,7 +5198,10 @@ class Purchases extends MY_Controller
 				 foreach($chart_acc_details as $chart) {
 					$section_id = $chart->sectionid;
 				 }
+				 
+				// $this->erp->print_arrays($this->purchases_model->getTranNoExp($id));
 				 $Transno = $this->purchases_model->getPurTranNo($id);
+				 //$this->erp->print_arrays($Transno);
 				 $this->data['type'] = $this->purchases_model->getAlltypes();
 				 $this->data['supplier'] = $chart_acc_details;
 				 $this->data['sectionacc'] = $chart_acc_details;

@@ -47,13 +47,13 @@
 						nRow.className = "purchase_links";
 					return nRow;
 				},
-                "aoColumns": [{
+                "aoColumns":  [{
                 "bSortable": false,
                 "mRender": checkbox
             },{"mRender": fld}, null,null, {
                     "bSearchable": false,
                     "mRender": pqFormatPurchaseReports
-                }, {"mRender": currencyFormat}, {"mRender": currencyFormat},null,{"mRender": currencyFormat}, {"mRender": row_status},{"bSortable": false}],
+                }, {"mRender": currencyFormat}, {"mRender": currencyFormat},{"mRender": currencyFormat},{"mRender": currencyFormat}, {"mRender": row_status},{"bSortable": false}],
                 "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
                     var gtotal = 0, paid = 0, balance = 0;
                     for (var i = 0; i < aaData.length; i++) {

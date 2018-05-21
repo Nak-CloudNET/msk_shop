@@ -161,7 +161,8 @@ class Purchases_model extends CI_Model
 		if($q->num_rows() > 0){
 			return  $q->row();
 		}
-		return FALSE;		
+		return FALSE;
+		
 	}
 	
 	public function getPurTranNo($id){
