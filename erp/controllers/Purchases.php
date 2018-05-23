@@ -407,6 +407,7 @@ class Purchases extends MY_Controller
        
         if ($this->form_validation->run() == true)
         {
+
             $purchase = $this->purchases_model->getPurchaseByID($id);
             $update=array(
                'status' => 'returned'
@@ -728,14 +729,16 @@ class Purchases extends MY_Controller
                 //$this->erp->print_arrays($this->data);
 			 
 			}
-			if ($this->input->post('amount-paid') && $this->input->post('amount-paid') > 0) {
-                if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')) {
-                $biller_id = $this->site->get_setting()->default_biller;
-                $rreference = $this->site->getReference('sp',$biller_id);
-            } else {
-                $biller_id = $this->session->userdata('biller_id');
-                $rreference = $this->site->getReference('sp',$biller_id);
-            }
+			if ($this->input->post('amount-paid') && $this->input->post('amount-paid') > 0) 
+            {
+                if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')) 
+                {
+                    $biller_id = $this->site->get_setting()->default_biller;
+                    $rreference = $this->site->getReference('sp',$biller_id);
+                } else {
+                    $biller_id = $this->session->userdata('biller_id');
+                    $rreference = $this->site->getReference('sp',$biller_id);
+                }
                 $payment = array(
                     'purchase_id'   => $id,
                     'date' 			=> $date,
@@ -757,6 +760,7 @@ class Purchases extends MY_Controller
             } else {
                 $payment = array();
             }
+
 			
             if ($_FILES['document']['size'] > 0) {
                 $this->load->library('upload');
@@ -848,6 +852,15 @@ class Purchases extends MY_Controller
             $this->data['type_of_po'] 	= $type_of_po;
 			$this->data['payment_ref'] 	= $this->site->getReference('pp');
             $this->data['reference'] 	= $this->site->getReference('rep',$inv->biller_id);
+            if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')) {
+                $biller_id = $this->site->get_setting()->default_biller;
+                $this->data['biller_id'] = $biller_id;
+                $this->data['rreference'] = $this->site->getReference('sp',$biller_id);
+            } else {
+                $biller_id = $this->session->userdata('biller_id');
+                $this->data['biller_id'] = $biller_id;
+                $this->data['rreference'] = $this->site->getReference('sp',$biller_id);
+            }
 			$this->data['referenceno'] 	= $this->purchases_model->getReferenceno($id);
             $this->data['billers'] 		= $this->site->getAllCompanies('biller');
             $this->data['tax_rates'] 	= $this->site->getAllTaxRates();
