@@ -975,8 +975,7 @@ class Purchases_model extends CI_Model
 	// Return by invoice
 	public function returnPurchase($data = array(), $items = array(), $payment = array())
     {
-       
-		
+     
 		$purchase_items = $this->site->getAllPurchaseItems($data['purchase_id']);
 		
         if ($this->db->insert('return_purchases', $data)) {
@@ -1027,6 +1026,9 @@ class Purchases_model extends CI_Model
                 );
 				*/
                 $this->db->insert('payments', $payment);
+                if ($this->site->getReference('sp',$payment['biller_id']) == $payment['reference_no']) {
+					$this->site->updateReference('sp',$data['biller_id']);
+				}
                 $this->site->updateReference('pp');
             }
 

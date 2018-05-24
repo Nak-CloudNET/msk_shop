@@ -959,10 +959,9 @@
 							</div>
 							<div class="row journalContainer">
 								<div class="col-md-12">
-									<div class="col-md-6">
-										<div class="form-group margin-b-5"><?= lang("chart_account", "chart_account"); ?></div>
+									<div class="col-md-4">
+							
 									</div>
-									<div class="col-md-6"><div class="form-group margin-b-5"><?= lang("amount", "amount"); ?></div></div>
 									<input type="hidden" name="old_transno" value="<?=$old_transno?>">
 								</div>
 								<?php
@@ -975,7 +974,22 @@
 									
 								?>
 									<div class="col-md-12 journal-list">
-										<div class="col-md-6">
+                                        <div class="col-md-4">
+                                            <?= lang("reference_no", "rreference"); ?>
+                                            <div style="float:left;width:100%;">
+                                                <div class="form-group">
+                                                    <div class="input-group">  
+                                                        <?php echo form_input('rreference', $rreference?$rreference:"",'class="form-control input-tip" id="rreference"'); ?>
+                                                        <input type="hidden"  name="rreference"  id="rreference" value="<?= $rreference?$rreference:"" ?>" />
+                                                        <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
+                                                            <input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+										<div class="col-md-4">
+                                            <?= lang("chart_account", "chart_account"); ?>
 											<div class="form-group company">
 												<?php
 												$acc_section = array(""=>"");
@@ -988,11 +1002,23 @@
 											</div>
 										</div>
 										
-										<div class="col-md-6">
+										<div class="col-md-4">
+                                            <div class="col-md-4"><?= lang("amount", "amount"); ?></div>
 											<div class="form-group">
 												<?php echo form_input('debit[]', ($journal->debit!=0?$journal->debit:$journal->credit), 'class="form-control debit" id="debit debit'.$n.'" style="pointer-events: none !important;"'); ?>
 											</div>
 										</div>
+                                        <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <?= lang("paying_by", "paid_by_1"); ?>
+                                                    <select name="paid_by" id="paid_by_1" class="form-control paid_by">
+                                                        <option value="cash"><?= lang("cash"); ?></option>
+                                                        <option value="gift_card"><?= lang("gift_card"); ?></option>
+                                                        <option value="Cheque"><?= lang("cheque"); ?></option>
+                                                        <option value="other"><?= lang("other"); ?></option>
+                                                    </select>
+                                                </div>
+                                            </div>
 										<!--
 										<div class="col-md-1">
 											<div class="form-group ">
@@ -1010,8 +1036,8 @@
 								
 							</div>
 									
-							<div class="col-md-6"></div>
-							<div class="col-md-5">
+							<div class="col-md-8"></div>
+							<div class="col-md-4">
 								<div class="form-group">
 									<label id="calDebit" style="padding-left: 18px;"><?=$debit?></label>
 									<input type="hidden" id="in_calDebit" value="<?=$debit?>"  class="in_calDebit" name="in_calDebit" />
@@ -1072,103 +1098,103 @@
     </div>
 </div>
 <div class="modal item_form" id="prModal" tabindex="-1" role="dialog" aria-labelledby="prModalLabel" aria-hidden="true">
-						<div class="modal-dialog">
-							<div class="modal-content">
-								<div class="modal-header">
-									<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true"><i
-												class="fa fa-2x">&times;</i></span><span class="sr-only"><?=lang('close');?></span></button>
-									<h4 class="modal-title" id="prModalLabel"></h4>
-								</div>
-								<div class="modal-body" id="pr_popover_content">
-									<form class="form-horizontal" role="form">
-										<div class="form-group" style="display:none;">
-											<label class="col-sm-4 control-label"><?= lang('supplier_products') ?></label>
-											<div class="col-sm-8">
-												<input type="hidden" name="psupplier[]" value="" id="psupplier"class="form-control" style="width:100%;" placeholder="<?= lang("select") . ' ' . lang("supplier") ?>">
-											</div>
-										</div>
-										<?php if ($Settings->tax1) { ?>
-											<div class="form-group">
-												<label class="col-sm-4 control-label"><?= lang('product_tax') ?></label>
-												<div class="col-sm-8">
-													<?php
-													$tr[""] = "";
-													foreach ($tax_rates as $tax) {
-														$tr[$tax->id] = $tax->name;
-													}
-													echo form_dropdown('ptax', $tr, "", 'id="ptax" class="form-control pos-input-tip" disabled ="disabled" style="width:100%;"');
-													?>
-												</div>
-											</div>
-										<?php } ?>
-										<?php if ($Settings->purchase_serial) { ?>
-											<div class="form-group">
-												<label for="serial_no" class="col-sm-4 control-label"><?= lang('serial_no') ?></label>
-
-												<div class="col-sm-8" id="serial"></div>
-											</div>
-										<?php } ?>
-										<div class="form-group">
-											<label for="pquantity" class="col-sm-4 control-label"><?= lang('quantity') ?></label>
-
-											<div class="col-sm-8">
-												<input type="text" class="form-control" id="pquantity" readonly>
-											</div>
-										</div>
-										<?php if ($Settings->product_expiry) { ?>
-											<div class="form-group">
-												<label for="pexpiry" class="col-sm-4 control-label"><?= lang('product_expiry') ?></label>
-
-												<div class="col-sm-8">
-													<input type="text" class="form-control date" id="pexpiry" readonly>
-												</div>
-											</div>
-										<?php } ?>
-										<div class="form-group">
-											<label for="poption" class="col-sm-4 control-label"><?= lang('product_option') ?></label>
-
-											<div class="col-sm-8">
-												<div id="poptions-div"></div>
-											</div>
-										</div>
-										<?php if ($Settings->product_discount) { ?>
-											<div class="form-group">
-												<label for="pdiscount"
-													   class="col-sm-4 control-label"><?= lang('product_discount') ?></label>
-
-												<div class="col-sm-8">
-													<input type="text" class="form-control" id="pdiscount" readonly>
-												</div>
-											</div>
-										<?php } ?>
-										<?php if($Owner || $Admin || $GP['purchases-cost']) {?>
-										<div class="form-group">
-											<label for="pcost" class="col-sm-4 control-label"><?= lang('unit_cost') ?></label>
-											<div class="col-sm-8">
-												<input type="text" class="form-control" id="pcost" readonly>
-											</div>
-										</div>
-										<?php } ?>
-										<table class="table table-bordered table-striped">
-											<tr>
-												<?php if($Owner || $Admin || $GP['purchases-cost']) {?>
-												<th style="width:25%;"><?= lang('unit_cost'); ?></th>
-												<th style="width:25%;"><span id="net_cost"></span></th>
-												<?php } ?>
-												<th style="width:25%;"><?= lang('product_tax'); ?></th>
-												<th style="width:25%;"><span id="pro_tax"></span></th>
-											</tr>
-										</table>
-										<input type="hidden" id="punit_cost" value=""/>
-										<input type="hidden" id="old_tax" value=""/>
-										<input type="hidden" id="old_qty" value=""/>
-										<input type="hidden" id="old_cost" value=""/>
-										<input type="hidden" id="row_id" value=""/>
-									</form>
-								</div>
-								<div class="modal-footer">
-									<button type="button" class="btn btn-primary" id="editItem"><?= lang('submit') ?></button>
-								</div>
-							</div>
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true"><i
+							class="fa fa-2x">&times;</i></span><span class="sr-only"><?=lang('close');?></span></button>
+				<h4 class="modal-title" id="prModalLabel"></h4>
+			</div>
+			<div class="modal-body" id="pr_popover_content">
+				<form class="form-horizontal" role="form">
+					<div class="form-group" style="display:none;">
+						<label class="col-sm-4 control-label"><?= lang('supplier_products') ?></label>
+						<div class="col-sm-8">
+							<input type="hidden" name="psupplier[]" value="" id="psupplier"class="form-control" style="width:100%;" placeholder="<?= lang("select") . ' ' . lang("supplier") ?>">
 						</div>
 					</div>
+					<?php if ($Settings->tax1) { ?>
+						<div class="form-group">
+							<label class="col-sm-4 control-label"><?= lang('product_tax') ?></label>
+							<div class="col-sm-8">
+								<?php
+								$tr[""] = "";
+								foreach ($tax_rates as $tax) {
+									$tr[$tax->id] = $tax->name;
+								}
+								echo form_dropdown('ptax', $tr, "", 'id="ptax" class="form-control pos-input-tip" disabled ="disabled" style="width:100%;"');
+								?>
+							</div>
+						</div>
+					<?php } ?>
+					<?php if ($Settings->purchase_serial) { ?>
+						<div class="form-group">
+							<label for="serial_no" class="col-sm-4 control-label"><?= lang('serial_no') ?></label>
+
+							<div class="col-sm-8" id="serial"></div>
+						</div>
+					<?php } ?>
+					<div class="form-group">
+						<label for="pquantity" class="col-sm-4 control-label"><?= lang('quantity') ?></label>
+
+						<div class="col-sm-8">
+							<input type="text" class="form-control" id="pquantity" readonly>
+						</div>
+					</div>
+					<?php if ($Settings->product_expiry) { ?>
+						<div class="form-group">
+							<label for="pexpiry" class="col-sm-4 control-label"><?= lang('product_expiry') ?></label>
+
+							<div class="col-sm-8">
+								<input type="text" class="form-control date" id="pexpiry" readonly>
+							</div>
+						</div>
+					<?php } ?>
+					<div class="form-group">
+						<label for="poption" class="col-sm-4 control-label"><?= lang('product_option') ?></label>
+
+						<div class="col-sm-8">
+							<div id="poptions-div"></div>
+						</div>
+					</div>
+					<?php if ($Settings->product_discount) { ?>
+						<div class="form-group">
+							<label for="pdiscount"
+								   class="col-sm-4 control-label"><?= lang('product_discount') ?></label>
+
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="pdiscount" readonly>
+							</div>
+						</div>
+					<?php } ?>
+					<?php if($Owner || $Admin || $GP['purchases-cost']) {?>
+					<div class="form-group">
+						<label for="pcost" class="col-sm-4 control-label"><?= lang('unit_cost') ?></label>
+						<div class="col-sm-8">
+							<input type="text" class="form-control" id="pcost" readonly>
+						</div>
+					</div>
+					<?php } ?>
+					<table class="table table-bordered table-striped">
+						<tr>
+							<?php if($Owner || $Admin || $GP['purchases-cost']) {?>
+							<th style="width:25%;"><?= lang('unit_cost'); ?></th>
+							<th style="width:25%;"><span id="net_cost"></span></th>
+							<?php } ?>
+							<th style="width:25%;"><?= lang('product_tax'); ?></th>
+							<th style="width:25%;"><span id="pro_tax"></span></th>
+						</tr>
+					</table>
+					<input type="hidden" id="punit_cost" value=""/>
+					<input type="hidden" id="old_tax" value=""/>
+					<input type="hidden" id="old_qty" value=""/>
+					<input type="hidden" id="old_cost" value=""/>
+					<input type="hidden" id="row_id" value=""/>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" id="editItem"><?= lang('submit') ?></button>
+			</div>
+		</div>
+	</div>
+</div>
