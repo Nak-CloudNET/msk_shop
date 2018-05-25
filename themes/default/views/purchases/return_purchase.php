@@ -567,6 +567,18 @@
 			
 		  }
 		});
+        $("#rreference").attr('readonly', true); 
+        $('#rref_st').on('ifChanged', function() {
+          if ($(this).is(':checked')) {
+            $("#rreference").attr('readonly', false); 
+            $("#rreference").val("");
+          }else{
+            $("#rreference").attr('readonly', true); 
+            var temp = $("#rreference_temp").val();
+            $("#rreference").val(temp);
+            
+          }
+        });
     }
 	
 	$(window).load(function(){
@@ -957,6 +969,7 @@
 									</div>
 								</div> -->
 							</div>
+                            <?php if($inv->paid > 0) { ?>
 							<div class="row journalContainer">
 								<div class="col-md-12">
 									<div class="col-md-4">
@@ -964,6 +977,22 @@
 									</div>
 									<input type="hidden" name="old_transno" value="<?=$old_transno?>">
 								</div>
+                                <div class="col-md-12">
+                                 <div class="col-md-4">
+                                    <?= lang("reference_no", "rreference"); ?>
+                                    <div style="float:left;width:100%;">
+                                        <div class="form-group">
+                                            <div class="input-group">  
+                                                <?php echo form_input('rreference', $rreference?$rreference:"",'class="form-control input-tip" id="rreference"'); ?>
+                                                <input type="hidden"  name="rreference_temp"  id="rreference_temp" value="<?= $rreference?$rreference:"" ?>" />
+                                                <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
+                                                    <input type="checkbox" name="ref_status" id="rref_st" value="1" style="margin-top:3px;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
 								<?php
 								$n = 1;
 								$debit = 0;
@@ -974,51 +1003,37 @@
 									
 								?>
 									<div class="col-md-12 journal-list">
-                                        <div class="col-md-4">
-                                            <?= lang("reference_no", "rreference"); ?>
-                                            <div style="float:left;width:100%;">
-                                                <div class="form-group">
-                                                    <div class="input-group">  
-                                                        <?php echo form_input('rreference', $rreference?$rreference:"",'class="form-control input-tip" id="rreference"'); ?>
-                                                        <input type="hidden"  name="rreference"  id="rreference" value="<?= $rreference?$rreference:"" ?>" />
-                                                        <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
-                                                            <input type="checkbox" name="ref_status" id="ref_st" value="1" style="margin-top:3px;">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
 										<div class="col-md-4">
                                             <?= lang("chart_account", "chart_account"); ?>
 											<div class="form-group company">
 												<?php
-												$acc_section = array(""=>"");
-												foreach($sectionacc as $section){
-													$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
-												}
-												echo form_dropdown('account_section[]', $acc_section, $journal->account_code,'', 'id="account_section" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("Account") . ' ' . $this->lang->line("Section") . '" required="required" style="width: 100% !important; pointer-events: none !important;"'); 
-												?>
+    												$acc_section = array(""=>"");
+    												foreach($sectionacc as $section){
+    													$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
+    												}
+    												echo form_dropdown('account_section[]', $acc_section, $journal->account_code,'', 'id="account_section" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("Account") . ' ' . $this->lang->line("Section") . '" required="required" style="width: 100% !important; pointer-events: none !important;"'); 
+    												?>
 												<input type="hidden" name="tran_id[]" value="<?= $journal->tran_id ?>">
 											</div>
 										</div>
-										
+										<div class="col-sm-4">
+                                            <div class="form-group">
+                                                <?= lang("paying_by", "paid_by_1"); ?>
+                                                <select name="paid_by" id="paid_by_1" class="form-control paid_by">
+                                                    <option value="cash"><?= lang("cash"); ?></option>
+                                                    <option value="gift_card"><?= lang("gift_card"); ?></option>
+                                                    <option value="Cheque"><?= lang("cheque"); ?></option>
+                                                    <option value="other"><?= lang("other"); ?></option>
+                                                </select>
+                                            </div>
+                                        </div>
 										<div class="col-md-4">
-                                            <div class="col-md-4"><?= lang("amount", "amount"); ?></div>
+                                            <?= lang("amount", "amount"); ?>
 											<div class="form-group">
 												<?php echo form_input('debit[]', ($journal->debit!=0?$journal->debit:$journal->credit), 'class="form-control debit" id="debit debit'.$n.'" style="pointer-events: none !important;"'); ?>
 											</div>
 										</div>
-                                        <div class="col-sm-4">
-                                                <div class="form-group">
-                                                    <?= lang("paying_by", "paid_by_1"); ?>
-                                                    <select name="paid_by" id="paid_by_1" class="form-control paid_by">
-                                                        <option value="cash"><?= lang("cash"); ?></option>
-                                                        <option value="gift_card"><?= lang("gift_card"); ?></option>
-                                                        <option value="Cheque"><?= lang("cheque"); ?></option>
-                                                        <option value="other"><?= lang("other"); ?></option>
-                                                    </select>
-                                                </div>
-                                            </div>
+                                        
 										<!--
 										<div class="col-md-1">
 											<div class="form-group ">
@@ -1036,14 +1051,15 @@
 								
 							</div>
 									
-							<div class="col-md-8"></div>
-							<div class="col-md-4">
-								<div class="form-group">
-									<label id="calDebit" style="padding-left: 18px;"><?=$debit?></label>
-									<input type="hidden" id="in_calDebit" value="<?=$debit?>"  class="in_calDebit" name="in_calDebit" />
-									<input type="hidden" id="in_calOrdTax"  class="in_calOrdTax" name="in_calOrdTax" />
-								</div>
-							</div>
+    							<div class="col-md-8"></div>
+    							<div class="col-md-4">
+    								<div class="form-group">
+    									<label id="calDebit" style="padding-left: 18px;"><?=$debit?></label>
+    									<input type="hidden" id="in_calDebit" value="<?=$debit?>"  class="in_calDebit" name="in_calDebit" />
+    									<input type="hidden" id="in_calOrdTax"  class="in_calOrdTax" name="in_calOrdTax" />
+    								</div>
+    							</div>
+                            <?php } ?>
 							</div>
 						</div>						
                         <div class="col-md-12">
