@@ -763,10 +763,10 @@
                             
                         </div>
 
-						<div class="col-md-12 item_form">
+						<!-- <div class="col-md-12 item_form">
                             <div class="form-group">
-                                <input disabled="disabled" type="checkbox" class="checkbox" id="extras" value=""/>
-								<label for="extras" class="padding05"><?= lang('more_options') ?></label>
+                                <input type="checkbox" class="checkbox" id="extras" value=""/>
+                                <label for="extras" class="padding05"><?= lang('more_options') ?></label>
                             </div>
                             <div class="row" id="extras-con" style="display: none;">
                                
@@ -803,7 +803,7 @@
 								
                             </div>
 
-                        </div>
+                        </div> -->
 						
                         <div style="height:15px; clear: both;"></div>
                         
@@ -943,6 +943,44 @@
                         </div>
 						
 						<div class="clearfix"></div>
+                        <div class="col-md-12 ">
+                        <div class="form-group">
+                            <input type="checkbox" class="checkbox" id="extras" value=""/>
+                            <label for="extras" class="padding05"><?= lang('more_options') ?></label>
+                        </div>
+                        <div class="row" id="extras-con" style="display: none;">
+                            
+                            <?php if ($Settings->tax1) { ?>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <?= lang('order_tax', 'potax2') ?>
+                                        <?php
+                                        $tr[""] = "";
+                                        foreach ($tax_rates as $tax) {
+                                            $tr[$tax->id] = $tax->name; 
+                                        }
+                                        echo form_dropdown('order_tax', $tr, "", 'id="potax2" class="form-control input-tip select" style="width:100%;"');
+                                        ?>
+                                    </div>
+                                </div>
+                            <?php } ?>
+
+                            <div class="col-sm-4">
+                                <div class="form-group">
+                                    <?= lang("payment_term", "slpayment_term"); ?>
+                                    <?php
+                                        $ptr[""] = "";
+                                        foreach ($payment_term as $term) {
+                                            $ptr[$term->id] = $term->description;
+                                        }
+                                        echo form_dropdown('payment_term', $ptr,$sale_order->payment_term?$sale_order->payment_term:"", 'id="slpayment_term" data-placeholder="' . lang("payment_term_tip") .  '" class="form-control input-tip select" style="width:100%;"');
+                                        //echo form_input('payment_term',$ptr,'11', 'class="form-control tip" data-trigger="focus" data-placement="top" title="' . lang('payment_term_tip') . '" id="slpayment_term"'); ?>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                    </div>
 						<div class="exp_form">							
 							<?php $attrib = array('data-toggle' => 'validator', 'role' => 'form');
 							echo form_open_multipart("account/save_journal", $attrib); ?>
@@ -969,8 +1007,10 @@
 									</div>
 								</div> -->
 							</div>
+
                             <?php if($inv->paid > 0) { ?>
-							<div class="row journalContainer">
+							<div class=" journalContainer well well-sm well_1">
+                                <div class="row">
 								<div class="col-md-12">
 									<div class="col-md-4">
 							
@@ -1048,7 +1088,7 @@
 									}
 								}
 									?>
-								
+								</div>
 							</div>
 									
     							<div class="col-md-8"></div>
@@ -1061,7 +1101,8 @@
     							</div>
                             <?php } ?>
 							</div>
-						</div>						
+						</div>	
+
                         <div class="col-md-12">
                             <div class="fprom-group"><?php echo form_submit('add_return', $this->lang->line("submit"), 'id="add_return" class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?></div>
 							
@@ -1214,3 +1255,17 @@
 		</div>
 	</div>
 </div>
+<script type="text/javascript">
+      $(document).ready(function () {
+        $('#extras').click(function(){
+            alert('hi');
+        });
+     /*   alert('hi');
+          $('#extras').on('ifChecked', function () {
+            $('#extras-con').slideDown();
+        });
+        $('#extras').on('ifUnchecked', function () {
+            $('#extras-con').slideUp();
+        });*/
+      });
+</script>
