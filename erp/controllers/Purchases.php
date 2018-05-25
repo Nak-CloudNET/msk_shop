@@ -320,7 +320,7 @@ class Purchases extends MY_Controller
             .(($this->Owner || $this->Admin) ? '<li class="edit">'.$add_payment_link.'</li>' : ($this->GP['purchases-payments'] ? '<li class="edit">'.$add_payment_link.'</li>' : '')).
 			'<li>' . $email_link . '</li>
             <li>' . $print_barcode . '</li>
-			<li>' . $using_stock . '</li>
+		
 			<li>' . $purchase_return . '<li></ul>
     </div></div>';
 
