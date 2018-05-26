@@ -84,6 +84,7 @@
 			var v_grand_total = v_debit + expense_tax;
 			$('#gtotal').text(formatPurDecimal(v_grand_total));
 		}
+        $('#extras-con').slideUp();
         <?php if ($inv) { ?>
         //localStorage.setItem('redate', '<?= $this->erp->hrld($inv->date) ?>');
         localStorage.setItem('reref', '<?= $reference ?>');
