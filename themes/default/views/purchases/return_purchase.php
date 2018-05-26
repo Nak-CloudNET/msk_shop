@@ -931,15 +931,121 @@
                         <input type="hidden" name="discount" value="" id="rediscount" required="required"/>
 
                         <div class="row" id="bt">
-                            <div class="col-md-12">
-                                <div class="col-md-12">
+                            <div class="col-md-8">
+                                <div class="col-md-8">
                                     <div class="form-group">
                                         <?= lang("return_note", "renote"); ?>
                                         <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control" id="renote" style="margin-top: 10px; height: 100px;"'); ?>
 
                                     </div>
                                 </div>
+                                 <?php if($inv->paid > 0) { ?>
+                                    <div class=" journalContainer ">
+                                        <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="col-md-4">
+                                    
+                                            </div>
+                                            <input type="hidden" name="old_transno" value="<?=$old_transno?>">
+                                        </div>
+                                        <div class="col-md-12">
+                                         <div class="col-md-4">
+                                            <?= lang("reference_no", "rreference"); ?>
+                                            <div style="float:left;width:100%;">
+                                                <div class="form-group">
+                                                    <div class="input-group">  
+                                                        <?php echo form_input('rreference', $rreference?$rreference:"",'class="form-control input-tip" id="rreference"'); ?>
+                                                        <input type="hidden"  name="rreference_temp"  id="rreference_temp" value="<?= $rreference?$rreference:"" ?>" />
+                                                        <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
+                                                            <input type="checkbox" name="ref_status" id="rref_st" value="1" style="margin-top:3px;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        </div>
+                                        <div class="col-md-12 well" style="margin-left: 30px;">
+                                            <div class=" journal-list">
+                                                <div class="col-md-4">
+                                                    <?= lang("chart_account", "chart_account"); ?>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <?= lang("paying_by", "paid_by_1"); ?>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <?= lang("amount", "amount"); ?>
+                                                </div>
+                                            </div>
+                                            <?php
+                                            $n = 1;
+                                            $debit = 0;
+                                            $credit = 0;
+                                            foreach($journals as $journal){
+                                                
+                                                if($journal->debit != 0 && $acc_setting->default_purchase_tax != $journal->account_code){
+                                                
+                                            ?>
+                                                <div class=" journal-list">
+                                                    <div class="col-md-4">
+                                                       
+                                                        <div class="form-group company">
+                                                            <?php
+                                                                $acc_section = array(""=>"");
+                                                                foreach($sectionacc as $section){
+                                                                    $acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
+                                                                }
+                                                                echo form_dropdown('account_section[]', $acc_section, $journal->account_code,'', 'id="account_section" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("Account") . ' ' . $this->lang->line("Section") . '" required="required" style="width: 100% !important; pointer-events: none !important;"'); 
+                                                                ?>
+                                                            <input type="hidden" name="tran_id[]" value="<?= $journal->tran_id ?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group">
+                                                          
+                                                            <select name="paid_by" id="paid_by_1" class="form-control paid_by">
+                                                                <option value="cash"><?= lang("cash"); ?></option>
+                                                                <option value="gift_card"><?= lang("gift_card"); ?></option>
+                                                                <option value="Cheque"><?= lang("cheque"); ?></option>
+                                                                <option value="other"><?= lang("other"); ?></option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                  
+                                                        <div class="form-group">
+                                                            <?php echo form_input('debit[]', ($journal->debit!=0?$journal->debit:$journal->credit), 'class="form-control debit" id="debit debit'.$n.'" style="pointer-events: none !important;"'); ?>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!--
+                                                    <div class="col-md-1">
+                                                        <div class="form-group ">
+                                                            <button type="button" class="removefiles btn btn-danger">&times;</button>
+                                                        </div>
+                                                    </div> -->
+                                                </div>
+                                                
+                                                <?php 
+                                                $debit += $journal->debit;
+                                                $n++;
+                                                }
+                                            }
+                                                ?>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                    <div class="col-md-8"></div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label id="calDebit" style="padding-left: 50px;"><?=$debit?></label>
+                                            <input type="hidden" id="in_calDebit" value="<?=$debit?>"  class="in_calDebit" name="in_calDebit" />
+                                            <input type="hidden" id="in_calOrdTax"  class="in_calOrdTax" name="in_calOrdTax" />
+                                        </div>
+                                    </div>
+                                <?php } ?>
                             </div>
+
                         </div>
 						
 						<div class="clearfix"></div>
@@ -980,6 +1086,7 @@
                             
                         </div>
 
+
                     </div>
 						<div class="exp_form">							
 							<?php $attrib = array('data-toggle' => 'validator', 'role' => 'form');
@@ -1008,105 +1115,24 @@
 								</div> -->
 							</div>
 
-                            <?php if($inv->paid > 0) { ?>
-							<div class=" journalContainer well well-sm well_1">
-                                <div class="row">
-								<div class="col-md-12">
-									<div class="col-md-4">
-							
-									</div>
-									<input type="hidden" name="old_transno" value="<?=$old_transno?>">
-								</div>
-                                <div class="col-md-12">
-                                 <div class="col-md-4">
-                                    <?= lang("reference_no", "rreference"); ?>
-                                    <div style="float:left;width:100%;">
-                                        <div class="form-group">
-                                            <div class="input-group">  
-                                                <?php echo form_input('rreference', $rreference?$rreference:"",'class="form-control input-tip" id="rreference"'); ?>
-                                                <input type="hidden"  name="rreference_temp"  id="rreference_temp" value="<?= $rreference?$rreference:"" ?>" />
-                                                <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
-                                                    <input type="checkbox" name="ref_status" id="rref_st" value="1" style="margin-top:3px;">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                </div>
-								<?php
-								$n = 1;
-								$debit = 0;
-								$credit = 0;
-								foreach($journals as $journal){
-									
-									if($journal->debit != 0 && $acc_setting->default_purchase_tax != $journal->account_code){
-									
-								?>
-									<div class="col-md-12 journal-list">
-										<div class="col-md-4">
-                                            <?= lang("chart_account", "chart_account"); ?>
-											<div class="form-group company">
-												<?php
-    												$acc_section = array(""=>"");
-    												foreach($sectionacc as $section){
-    													$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
-    												}
-    												echo form_dropdown('account_section[]', $acc_section, $journal->account_code,'', 'id="account_section" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("Account") . ' ' . $this->lang->line("Section") . '" required="required" style="width: 100% !important; pointer-events: none !important;"'); 
-    												?>
-												<input type="hidden" name="tran_id[]" value="<?= $journal->tran_id ?>">
-											</div>
-										</div>
-										<div class="col-sm-4">
-                                            <div class="form-group">
-                                                <?= lang("paying_by", "paid_by_1"); ?>
-                                                <select name="paid_by" id="paid_by_1" class="form-control paid_by">
-                                                    <option value="cash"><?= lang("cash"); ?></option>
-                                                    <option value="gift_card"><?= lang("gift_card"); ?></option>
-                                                    <option value="Cheque"><?= lang("cheque"); ?></option>
-                                                    <option value="other"><?= lang("other"); ?></option>
-                                                </select>
-                                            </div>
-                                        </div>
-										<div class="col-md-4">
-                                            <?= lang("amount", "amount"); ?>
-											<div class="form-group">
-												<?php echo form_input('debit[]', ($journal->debit!=0?$journal->debit:$journal->credit), 'class="form-control debit" id="debit debit'.$n.'" style="pointer-events: none !important;"'); ?>
-											</div>
-										</div>
-                                        
-										<!--
-										<div class="col-md-1">
-											<div class="form-group ">
-												<button type="button" class="removefiles btn btn-danger">&times;</button>
-											</div>
-										</div> -->
-									</div>
-									
-									<?php 
-									$debit += $journal->debit;
-									$n++;
-									}
-								}
-									?>
-								</div>
-							</div>
-									
-    							<div class="col-md-8"></div>
-    							<div class="col-md-4">
-    								<div class="form-group">
-    									<label id="calDebit" style="padding-left: 18px;"><?=$debit?></label>
-    									<input type="hidden" id="in_calDebit" value="<?=$debit?>"  class="in_calDebit" name="in_calDebit" />
-    									<input type="hidden" id="in_calOrdTax"  class="in_calOrdTax" name="in_calOrdTax" />
-    								</div>
-    							</div>
-                            <?php } ?>
 							</div>
 						</div>	
-
+                     
                         <div class="col-md-12">
                             <div class="fprom-group"><?php echo form_submit('add_return', $this->lang->line("submit"), 'id="add_return" class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?></div>
-							
-							<div id="bottom-total" class="well well-sm item_form" style="margin-bottom: 0;">
+						   <?php if($inv->type_of_po=='exp'){ ?>
+                                
+                                <div style="margin-bottom: 0px; position: static; bottom: 0px; width: 1504px; z-index: 50000;" class="well well-sm">
+                                    <table style="margin-bottom:0;" class="table table-bordered table-condensed totals">
+                                        <tbody><tr class="warning">
+                                            <td><?= lang('payment_status') ?>: <span class="totals_val pull-right"><?= $inv->payment_status?></span></td>
+                                            <td><?= lang('paid_amount') ?> <span class="totals_val pull-right"><?= $inv->paid?></span></td>
+                                        </tr>
+                                    </tbody></table>
+                                </div>
+                               
+                            <?php } ?>
+						<div id="bottom-total" class="well well-sm item_form" style="margin-bottom: 0;">
                                 <table class="table table-bordered table-condensed totals" style="margin-bottom:0;">
                                     <tr class="warning">
                                         <td>
@@ -1141,7 +1167,8 @@
                                         </td>
                                     </tr>
                                 </table>
-                            </div>							
+                            </div>		
+
                         </div>
                     </div>
                 </div>
