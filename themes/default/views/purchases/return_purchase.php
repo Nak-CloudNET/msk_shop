@@ -346,7 +346,7 @@
 			$('#extras').iCheck('check');
 			$('#extras-con').show();
 		}
-		
+		<?=isset($_POST['cf']) ? '$("#extras").iCheck("check");': '' ?>
 		$('#extras').on('ifChecked', function () {
 			localStorage.setItem('poextras', 1);
 			$('#extras-con').slideDown();
@@ -1007,7 +1007,7 @@
 						<div class="clearfix"></div>
                         <div class="col-md-12 ">
                         <div class="form-group">
-                            <input type="checkbox" class="checkbox" id="extras" value=""/>
+                            <input type="checkbox" class="checkbox" id="extras" checked value=""/>
                             <label for="extras" class="padding05"><?= lang('more_options') ?></label>
                         </div>
                         <div class="row" id="extras-con" style="display: none;">
@@ -1287,17 +1287,3 @@
 		</div>
 	</div>
 </div>
-<script type="text/javascript">
-      $(document).ready(function () {
-        $('#extras').click(function(){
-            alert('hi');
-        });
-     /*   alert('hi');
-          $('#extras').on('ifChecked', function () {
-            $('#extras-con').slideDown();
-        });
-        $('#extras').on('ifUnchecked', function () {
-            $('#extras-con').slideUp();
-        });*/
-      });
-</script>
