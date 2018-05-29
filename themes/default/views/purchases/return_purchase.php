@@ -88,7 +88,7 @@
         <?php if ($inv) { ?>
         //localStorage.setItem('redate', '<?= $this->erp->hrld($inv->date) ?>');
         localStorage.setItem('reref', '<?= $reference ?>');
-        localStorage.setItem('renote', '<?= $this->erp->decode_html($inv->note); ?>');
+        localStorage.setItem('renote', '<?= str_replace(array("'", "\n"), "",  $this->erp->decode_html($inv->note));?>');
         localStorage.setItem('reitems', JSON.stringify(<?= $inv_items; ?>));
         localStorage.setItem('rediscount', '<?= $inv->order_discount_id ?>');
         localStorage.setItem('retax2', '<?= $inv->order_tax_id ?>');
