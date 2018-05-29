@@ -310,8 +310,7 @@ class Purchases extends MY_Controller
         . lang('actions') . ' <span class="caret"></span></button>
         <ul class="dropdown-menu pull-right" role="menu">
             <li>' . $detail_link . '</li>
-            <li>' . $payments_link . '</li>
-           <li>' . $add_payment_link . '</li>'
+            <li>' . $payments_link . '</li>'
 		   
            .(($this->Owner || $this->Admin) ? '<li class="edit">'.$edit_link.'</li>' : ($this->GP['purchases-edit'] ? '<li class="edit">'.$edit_link.'</li>' : '')).
 		   (($this->Owner || $this->Admin) ? '<li class="edit_opening_ap">'.$edit_opening_ap_link.'</li>' : ($this->GP['purchases-edit'] ? '<li class="edit_opening_ap">'.$edit_opening_ap_link.'</li>' : '')).
