@@ -1134,6 +1134,17 @@
                                             <?php echo form_input('amount', ($inv->paid!=0?$inv->paid:0), 'class="form-control debit" id="debit debit'.$n.'" style="pointer-events: none !important;"'); ?>
                                         </div>
                                     </div>
+                                    <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <?= lang("paying_by", "paid_by_1"); ?>
+                                        <select name="paid_by" id="paid_by_1" class="form-control paid_by">
+                                            <option value="cash"><?= lang("cash"); ?></option>
+                                            <option value="gift_card"><?= lang("gift_card"); ?></option>
+                                            <option value="Cheque"><?= lang("cheque"); ?></option>
+                                            <option value="other"><?= lang("other"); ?></option>
+                                        </select>
+                                    </div>
+                                    </div>  
 									<div class="col-sm-4" id="bank_acc">
                                         <div class="form-group">
                                             <?= lang("bank_account", "bank_account_1"); ?>
@@ -1145,17 +1156,6 @@
                                             ?>
                                         </div>
                                     </div>
-									<div class="col-sm-4">
-                                        <div class="form-group">
-                                            <?= lang("paying_by", "paid_by_1"); ?>
-                                            <select name="paid_by" id="paid_by_1" class="form-control paid_by">
-                                                <option value="cash"><?= lang("cash"); ?></option>
-                                                <option value="gift_card"><?= lang("gift_card"); ?></option>
-                                                <option value="Cheque"><?= lang("cheque"); ?></option>
-                                                <option value="other"><?= lang("other"); ?></option>
-                                            </select>
-                                        </div>
-                                    </div>	
                                     <div class="col-md-12">
                                         <div class="clearfix"></div>
                                         <div class="pcc_1" style="display:none;">
