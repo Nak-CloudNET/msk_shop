@@ -50,7 +50,40 @@
 			}
 			return false;
 		});
-		
+		$(document).on('change', '.paid_by', function () {
+            var p_val = $(this).val();
+            //localStorage.setItem('paid_by', p_val);
+            $('#rpaidby').val(p_val);
+            if (p_val == 'cash') {
+                $('.pcheque_1').hide();
+                $('.pcc_1').hide();
+                $('.pcash_1').show();
+                //$('#amount_1').focus();
+            } else if (p_val == 'CC') {
+                $('.pcheque_1').hide();
+                $('.pcash_1').hide();
+                $('.pcc_1').show();
+                $('#pcc_no_1').focus();
+            } else if (p_val == 'Cheque') {
+                $('.pcc_1').hide();
+                $('.pcash_1').hide();
+                $('.pcheque_1').show();
+                $('#cheque_no_1').focus();
+            } else {
+                $('.pcheque_1').hide();
+                $('.pcc_1').hide();
+                $('.pcash_1').hide();
+            }
+            if (p_val == 'gift_card') {
+                $('.gc').show();
+                $('.ngc').hide();
+                $('#gift_card_no').focus();
+            } else {
+                $('.ngc').show();
+                $('.gc').hide();
+                $('#gc_details').html('');
+            }
+        });
 		function AutoDebit() {
 			var v_debit = 0;
 			var i = 1;
@@ -1081,53 +1114,128 @@
 									<input type="hidden" name="old_transno" value="<?=$old_transno?>">
 								</div>
                                 <div class="col-md-12">
-                                 <div class="col-md-4">
-                                    <?= lang("reference_no", "rreference"); ?>
-                                    <div style="float:left;width:100%;">
-                                        <div class="form-group">
-                                            <div class="input-group">  
-                                                <?php echo form_input('rreference', $rreference?$rreference:"",'class="form-control input-tip" id="rreference"'); ?>
-                                                <input type="hidden"  name="rreference_temp"  id="rreference_temp" value="<?= $rreference?$rreference:"" ?>" />
-                                                <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
-                                                    <input type="checkbox" name="ref_status" id="rref_st" value="1" style="margin-top:3px;">
+                                    <div class="col-md-4">
+                                        <?= lang("reference_no", "rreference"); ?>
+                                        <div style="float:left;width:100%;">
+                                            <div class="form-group">
+                                                <div class="input-group">  
+                                                    <?php echo form_input('rreference', $rreference?$rreference:"",'class="form-control input-tip" id="rreference"'); ?>
+                                                    <input type="hidden"  name="rreference_temp"  id="rreference_temp" value="<?= $rreference?$rreference:"" ?>" />
+                                                    <div class="input-group-addon no-print" style="padding: 2px 5px;background-color:white;">
+                                                        <input type="checkbox" name="ref_status" id="rref_st" value="1" style="margin-top:3px;">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                </div>
-									<div class="col-md-12 journal-list">
-										<div class="col-md-4">
-                                            <?= lang("bank_account", "bank_account"); ?>
-											<div class="form-group company">
-												<?php
-    												$acc_section = array(""=>"");
-    												foreach($sectionacc as $section){
-    													$acc_section[$section->accountcode] = $section->accountcode.' | '.$section->accountname;
-    												}
-    												echo form_dropdown('account_section[]', $acc_section, $journal->account_code,'', 'id="account_section" class="form-control input-tip select" data-placeholder="' . $this->lang->line("select") . ' ' . $this->lang->line("Account") . ' ' . $this->lang->line("Section") . '" required="required" style="width: 100% !important; pointer-events: none !important;"'); 
-    												?>
-												<input type="hidden" name="tran_id[]" value="<?= $journal->tran_id ?>">
-											</div>
-										</div>
-										<div class="col-sm-4">
-                                            <div class="form-group">
-                                                <?= lang("paying_by", "paid_by_1"); ?>
-                                                <select name="paid_by" id="paid_by_1" class="form-control paid_by">
-                                                    <option value="cash"><?= lang("cash"); ?></option>
-                                                    <option value="gift_card"><?= lang("gift_card"); ?></option>
-                                                    <option value="Cheque"><?= lang("cheque"); ?></option>
-                                                    <option value="other"><?= lang("other"); ?></option>
-                                                </select>
+                                    <div class="col-md-4">
+                                        <?= lang("amount", "amount"); ?>
+                                        <div class="form-group">
+                                            <?php echo form_input('amount', ($inv->paid!=0?$inv->paid:0), 'class="form-control debit" id="debit debit'.$n.'" style="pointer-events: none !important;"'); ?>
+                                        </div>
+                                    </div>
+									<div class="col-sm-4" id="bank_acc">
+                                        <div class="form-group">
+                                            <?= lang("bank_account", "bank_account_1"); ?>
+                                            <?php $bank = array('0' => '-- Select Bank Account --');
+                                            foreach($bankAccounts as $bankAcc) {
+                                                $bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
+                                            }
+                                            echo form_dropdown('bank_account', $bank, '', 'id="bank_account_1" class="ba form-control kb-pad bank_account" required="required"');
+                                            ?>
+                                        </div>
+                                    </div>
+									<div class="col-sm-4">
+                                        <div class="form-group">
+                                            <?= lang("paying_by", "paid_by_1"); ?>
+                                            <select name="paid_by" id="paid_by_1" class="form-control paid_by">
+                                                <option value="cash"><?= lang("cash"); ?></option>
+                                                <option value="gift_card"><?= lang("gift_card"); ?></option>
+                                                <option value="Cheque"><?= lang("cheque"); ?></option>
+                                                <option value="other"><?= lang("other"); ?></option>
+                                            </select>
+                                        </div>
+                                    </div>	
+                                    <div class="col-md-12">
+                                        <div class="clearfix"></div>
+                                        <div class="pcc_1" style="display:none;">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <input name="pcc_no" type="text" id="pcc_no_1"
+                                                               class="form-control" placeholder="<?= lang('cc_no') ?>"/>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+
+                                                        <input name="pcc_holder" type="text" id="pcc_holder_1"
+                                                               class="form-control"
+                                                               placeholder="<?= lang('cc_holder') ?>"/>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <select name="pcc_type" id="pcc_type_1"
+                                                                class="form-control pcc_type"
+                                                                placeholder="<?= lang('card_type') ?>">
+                                                            <option value="Visa"><?= lang("Visa"); ?></option>
+                                                            <option
+                                                                value="MasterCard"><?= lang("MasterCard"); ?></option>
+                                                            <option value="Amex"><?= lang("Amex"); ?></option>
+                                                            <option value="Discover"><?= lang("Discover"); ?></option>
+                                                        </select>
+                                                        <!-- <input type="text" id="pcc_type_1" class="form-control" placeholder="<?= lang('card_type') ?>" />-->
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <input name="pcc_month" type="text" id="pcc_month_1"
+                                                               class="form-control" placeholder="<?= lang('month') ?>"/>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+
+                                                        <input name="pcc_year" type="text" id="pcc_year_1"
+                                                               class="form-control" placeholder="<?= lang('year') ?>"/>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+
+                                                        <input name="pcc_ccv" type="text" id="pcc_cvv2_1"
+                                                               class="form-control" placeholder="<?= lang('cvv2') ?>"/>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-										<div class="col-md-4">
-                                            <?= lang("amount", "amount"); ?>
-											<div class="form-group">
-												<?php echo form_input('amount', ($inv->paid!=0?$inv->paid:0), 'class="form-control debit" id="debit debit'.$n.'" style="pointer-events: none !important;"'); ?>
-											</div>
-										</div>
-									</div>
+                                        <div class="pcheque_1" style="display:none;">
+                                            <div class="form-group"><?= lang("cheque_no", "cheque_no_1"); ?>
+                                                <input name="cheque_no" type="text" id="cheque_no_1"
+                                                       class="form-control cheque_no"/>
+                                            </div>
+                                        </div>
+                                        <div class="gc" style="display: none;">
+                                            <div class="form-group">
+                                                <?= lang("gift_card_no", "gift_card_no"); ?>
+                                                <div class="input-group">
+
+                                                    <input name="gift_card_no" type="text" id="gift_card_no"
+                                                           class="pa form-control kb-pad"/>
+
+                                                    <div class="input-group-addon"
+                                                         style="padding-left: 10px; padding-right: 10px; height:25px;">
+                                                        <a href="#" id="sellGiftCard" class="tip"
+                                                           title="<?= lang('sell_gift_card') ?>"><i
+                                                                class="fa fa-credit-card"></i></a></div>
+                                                </div>
+                                            </div>
+                                            <div id="gc_details"></div>
+                                        </div>
+                                    </div>
+								</div>
+                                        
 									
 
 								</div>
