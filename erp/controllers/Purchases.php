@@ -730,13 +730,18 @@ class Purchases extends MY_Controller
 			}
 			if ($this->input->post('amount-paid') && $this->input->post('amount-paid') > 0) 
             {
-                if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')) 
-                {
-                    $biller_id = $this->site->get_setting()->default_biller;
-                    $rreference = $this->site->getReference('sp',$biller_id);
-                } else {
-                    $biller_id = $this->session->userdata('biller_id');
-                    $rreference = $this->site->getReference('sp',$biller_id);
+                if($this->input->post('rreference')){
+                    $rreference=$this->input->post('rreference');
+                }
+                if(!$rreference){
+                    if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')) 
+                    {
+                        $biller_id = $this->site->get_setting()->default_biller;
+                        $rreference = $this->site->getReference('sp',$biller_id);
+                    } else {
+                        $biller_id = $this->session->userdata('biller_id');
+                        $rreference = $this->site->getReference('sp',$biller_id);
+                    }
                 }
                 $payment = array(
                     'purchase_id'   => $id,

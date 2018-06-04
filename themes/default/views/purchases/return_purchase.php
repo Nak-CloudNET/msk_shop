@@ -1147,7 +1147,7 @@
                                     </div>  
 									<div class="col-sm-4" id="bank_acc">
                                         <div class="form-group">
-                                            <?= lang("bank_account", "bank_account_1"); ?>
+                                            <?= lang("bank_account", "bank_account").' *'; ?>
                                             <?php $bank = array('0' => '-- Select Bank Account --');
                                             foreach($bankAccounts as $bankAcc) {
                                                 $bank[$bankAcc->accountcode] = $bankAcc->accountcode . ' | '. $bankAcc->accountname;
