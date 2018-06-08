@@ -330,7 +330,8 @@ class Purchases extends MY_Controller
                         FROM erp_return_purchases 
                         WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases, 
                         return_purchases.paid, 
-                        (erp_purchases.grand_total-erp_purchases.paid-(select paid from erp_return_purchases where id=erp_purchases.id)) as balance,payment_status, opening_ap")
+                        IF(erp_purchases.status='Returned',(0.00),(erp_purchases.grand_total-erp_purchases.paid)) as balance,
+                        payment_status, opening_ap")
                 ->from('purchases')
 				->join('companies', 'companies.id = purchases.supplier_id', 'inner')
                 ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
@@ -342,9 +343,8 @@ class Purchases extends MY_Controller
                         FROM erp_return_purchases 
                         WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases,  
                         (erp_purchases.paid-COALESCE(erp_return_purchases.paid,0)) as paid,  
-                        (erp_purchases.grand_total-erp_purchases.paid-(select paid from erp_return_purchases where id=erp_purchases.id)-COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
-                        FROM erp_return_purchases 
-                        WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0)) as balance, payment_status, opening_ap")
+                        IF(erp_purchases.status='Returned',(0.00),(erp_purchases.grand_total-erp_purchases.paid)) as balance, 
+                        payment_status, opening_ap")
                 ->from('purchases')
                 ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
 				->join('companies', 'companies.id = purchases.supplier_id', 'inner');
