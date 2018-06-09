@@ -975,9 +975,7 @@ class Purchases_model extends CI_Model
 	// Return by invoice
 	public function returnPurchase($data = array(), $items = array(), $payment = array())
     {
-     
-		$purchase_items = $this->site->getAllPurchaseItems($data['purchase_id']);
-		
+		$purchase_items = $this->site->getAllPurchaseItems($data['purchase_id']);		
         if ($this->db->insert('return_purchases', $data)) {
             $return_id = $this->db->insert_id();
 			
@@ -1011,20 +1009,7 @@ class Purchases_model extends CI_Model
             }
             $is_payment = $this->paymentByPurchaseID($data['purchase_id']);
             if($payment){
-                /*
-				$payment = array(
-                    'date' 					=> $data['date'],
-                    'purchase_id' 			=> $data['purchase_id'],
-                    'reference_no' 			=> $this->site->getReference('pp'),
-                    'amount' 				=> $data['grand_total'],
-                    'paid_by' 				=> 'cash',
-                    'created_by' 			=> $this->session->userdata('user_id'),
-                    'type' 					=> 'received',
-                    'note' 					=> $data['note'] ? 'Returned: '. $data['note'] : 'Returned',
-                    'purchase_return_id' 	=> $return_id,
-                    'biller_id' 			=> $this->default_biller_id
-                );
-				*/
+                $payment['purchase_return_id'] = $return_id;
                 $this->db->insert('payments', $payment);
                 if ($this->site->getReference('sp',$payment['biller_id']) == $payment['reference_no']) {
 					$this->site->updateReference('sp',$data['biller_id']);
@@ -1033,8 +1018,6 @@ class Purchases_model extends CI_Model
             }
 
             $this->calculatePurchaseTotalsReturn($data['purchase_id'], $return_id, $data['surcharge']);
-            //$this->site->syncQuantity(NULL, NULL, $purchase_items);
-            //$this->site->syncQuantity(NULL, $data['purchase_id']);
             $this->site->syncQuantitys(NULL, $data['purchase_id'], NULL, NULL);
             return true;
         }
@@ -1044,8 +1027,7 @@ class Purchases_model extends CI_Model
 	/* Purchases Return */
 	public function returnPurchases($data = array(), $items = array())
     {
-		//$this->erp->print_arrays($data, $items);
-        if ($this->db->insert('return_purchases', $data)) {
+		if ($this->db->insert('return_purchases', $data)) {
             $return_id = $this->db->insert_id();
             if ($this->site->getReference('rep') == $data['reference_no']) {
                 $this->site->updateReference('rep');

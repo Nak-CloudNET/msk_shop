@@ -744,7 +744,6 @@ class Purchases extends MY_Controller
                     }
                 }
                 $payment = array(
-                    'purchase_id'   => $id,
                     'date' 			=> $date,
                     'reference_no' 	=> $rreference,
                     'amount' 		=> $this->erp->formatDecimal($this->input->post('amount-paid')),
