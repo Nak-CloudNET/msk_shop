@@ -426,7 +426,7 @@ class Purchases extends MY_Controller
                 $date = date('Y-m-d H:i:s');
             }
             $return_surcharge = $this->input->post('return_surcharge') ? $this->input->post('return_surcharge') : 0;
-            $note = $this->erp->clear_tags($this->input->post('note'));
+            $note = strip_tags($this->input->post('note'));
             $shipping = $this->input->post('shipping') ? $this->input->post('shipping') : 0; 
 			if($type_of_po == 'po'){
 				$total = 0;
