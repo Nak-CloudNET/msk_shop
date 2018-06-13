@@ -1,5 +1,4 @@
 <div class="row">
-
     <div class="col-sm-2">
         <div class="row">
             <div class="col-sm-12 text-center">
@@ -343,7 +342,8 @@
 													foreach ($cat as $cate) {
 														$cats[$cate->id] = $cate->name;
 													}
-													echo form_dropdown('cate[]', $cats, '', 'id="cate" class="form-control" multiple="multiple"');
+													$sales_category = explode(',', $p->sales_category);
+													echo form_dropdown('cate[]', $cats, $sales_category, 'id="cate" class="form-control" multiple="multiple"');
 												?>
 											</div>
 										</td>
@@ -384,7 +384,8 @@
 													foreach ($cat as $cate) {
 														$cats[$cate->id] = $cate->name;
 													}
-													echo form_dropdown('pcate[]', $cats, '', 'id="pcate" class="form-control" multiple="multiple"');
+													$purchase_category = explode(',', $p->purchase_category);
+													echo form_dropdown('pcate[]', $cats, $purchase_category, 'id="pcate" class="form-control" multiple="multiple"');
 												?>
 											</div>
 										</td>

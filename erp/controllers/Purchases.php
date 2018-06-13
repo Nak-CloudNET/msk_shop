@@ -335,7 +335,7 @@ class Purchases extends MY_Controller
                 ->from('purchases')
 				->join('companies', 'companies.id = purchases.supplier_id', 'inner')
                 ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
-                ->where_in('warehouse_id', $warehouse_id);
+                ->where_in('purchases.warehouse_id', $warehouse_id);
         } else {
 			$this->datatables
                 ->select("purchases.id,purchases.date,purchases.request_ref,purchases.order_ref,purchases.reference_no, companies.name, erp_purchases.status, erp_purchases.grand_total,

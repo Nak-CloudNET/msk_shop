@@ -387,7 +387,7 @@
                                                 <span class="text"> <?= lang('add_product'); ?></span>
                                             </a>
                                         </li>
-                                        <li id="products_list_convert" class="sub_navigation">
+                                    <!--    <li id="products_list_convert" class="sub_navigation">
                                             <a class="submenu" href="<?= site_url('products/list_convert'); ?>">
                                                 <i class="fa fa-barcode"></i>
                                                 <span class="text"> <?= lang('list_convert'); ?></span>
@@ -399,12 +399,12 @@
                                                 <span class="text"> <?= lang('add_convert'); ?></span>
                                             </a>
                                         </li> 
-                                        <!--<li id="products_return_products" class="sub_navigation">
+                                        <li id="products_return_products" class="sub_navigation">
                                             <a class="submenu" href="<?= site_url('products/return_products'); ?>">
                                                 <i class="fa fa-retweet"></i>
                                                 <span class="text"> <?= lang('list_products_return'); ?></span>
                                             </a>
-                                        </li>-->
+                                        </li>
 
                                         <li id="products_print_barcodes" class="sub_navigation">
                                             <a class="submenu" href="<?= site_url('products/print_barcodes'); ?>">
@@ -423,7 +423,7 @@
 												<i class="fa fa-plus-circle"></i>
 												<span class="text"> <?= lang('add_adjustment_multiple'); ?></span>
 											</a>
-										</li>
+										</li> -->
 										<?php if ($GP['product_import']) { ?>
 											<li id="products_import_csv" class="sub_navigation">
 												<a class="submenu" href="<?= site_url('products/import_csv'); ?>">
@@ -475,7 +475,7 @@
                                                 <span class="text"> <?= lang('add_stock_using'); ?></span>
                                             </a>
                                         </li>
-										<li id="products_barcode_count_stock" class="sub_navigation">
+									<!--	<li id="products_barcode_count_stock" class="sub_navigation">
                                             <a class="submenu" href="<?= site_url('products/barcode_count_stock'); ?>">
                                                 <i class="fa fa-filter"></i>
                                                 <span class="text"> <?= lang('barcode_count_stock'); ?></span>
@@ -493,7 +493,7 @@
                                                 <span class="text"> <?= lang('add_count_stock'); ?></span>
                                             </a>
                                         </li>
-										<!--<li id="products_list_adjust_cost" class="sub_navigation">
+										<li id="products_list_adjust_cost" class="sub_navigation">
                                             <a class="submenu" href="<?= site_url('products/list_adjust_cost'); ?>">
                                                 <i class="fa fa-file"></i>
                                                 <span class="text"> <?= lang('list_adjust_cost'); ?></span>
@@ -552,7 +552,7 @@
 											</a>
                                         </li>
                                         
-										<li id="sales_deliveries">
+									<!--	<li id="sales_deliveries">
                                             <a class="submenu" href="<?= site_url('sales/deliveries'); ?>">
                                                 <i class="fa fa-truck"></i>
                                                 <span class="text"> <?= lang('list_deliveries'); ?></span>
@@ -563,7 +563,7 @@
                                                 <i class="fa fa-plus-circle"></i>
                                                 <span class="text"> <?= lang('add_deliveries'); ?></span>
                                             </a>
-                                        </li>
+                                        </li> -->
 										<li id="sales_customer_balance">
                                             <a class="submenu" href="<?= site_url('sales/customer_balance'); ?>">
                                                 <i class="fa fa-money"></i>
@@ -579,7 +579,7 @@
 											</li>
 										<?php } ?>
 										
-										<li id="sales_gift_cards">
+									<!--	<li id="sales_gift_cards">
                                             <a class="submenu" href="<?= site_url('sales/gift_cards'); ?>">
                                                 <i class="fa fa-credit-card"></i>
                                                 <span class="text"> <?= lang('list_gift_cards'); ?></span>
@@ -602,7 +602,7 @@
                                                 <i class="fa fa-money"></i>
                                                 <span class="text"> <?= lang('installment'); ?></span>
                                             </a>
-                                        </li>										
+                                        </li>	-->									
                                         <li id="sales_return_sales">
                                             <a class="submenu" href="<?= site_url('sales/return_sales'); ?>">
                                                 <i class="fa fa-reply"></i>
@@ -1054,7 +1054,7 @@
                                                         <i class="fa fa-plus-circle"></i><span class="text"> <?= lang('add_customer'); ?></span>
                                                     </a>
                                                 </li>
-												<li id="drivers_index">
+											<!--	<li id="drivers_index">
 													<a class="submenu" href="<?= site_url('drivers'); ?>">
 														<i class="fa fa-users"></i><span class="text"> <?= lang('list_drivers'); ?></span>
 													</a>
@@ -1063,7 +1063,7 @@
                                                     <a class="submenu" href="<?= site_url('drivers/add'); ?>" data-toggle="modal" data-target="#myModal">
                                                         <i class="fa fa-plus-circle"></i><span class="text"> <?= lang('add_driver'); ?></span>
                                                     </a>
-                                                </li>
+                                                </li> -->
                                                 <li id="suppliers_index">
                                                     <a class="submenu" href="<?= site_url('suppliers'); ?>">
                                                         <i class="fa fa-users"></i><span class="text"> <?= lang('list_suppliers'); ?></span>
@@ -1074,7 +1074,7 @@
                                                         <i class="fa fa-plus-circle"></i><span class="text"> <?= lang('add_supplier'); ?></span>
                                                     </a>
                                                 </li>
-                                               <li id="employees_index">
+                                            <!--   <li id="employees_index">
 													<a class="submenu" href="<?= site_url('employees'); ?>">
 														<i class="fa fa-users"></i><span class="text"> <?= lang('list_employees'); ?></span>
 													</a>
@@ -1088,7 +1088,7 @@
 													<a class="submenu" href="<?= site_url('employees/create_employee_salary'); ?>" >
 														<i class="fa fa-plus-circle"></i><span class="text"> <?= lang('create_employee_salary'); ?></span>
 													</a>
-												</li>
+												</li> -->
                                     </ul>
                                 </li>
                                 <!--
@@ -1182,7 +1182,7 @@
 															 <i class="fa fa-wrench"></i><span class="text"> <?= lang('units'); ?></span>
 														</a>
 													</li>                                                    
-                                                    <li id="system_settings_bom">
+                                                <!--    <li id="system_settings_bom">
                                                         <a href="<?= site_url('system_settings/bom') ?>">
                                                             <i class="fa fa-tags"></i><span class="text"> <?= lang('bom'); ?></span>
                                                         </a>
@@ -1191,17 +1191,17 @@
                                                         <a href="<?= site_url('system_settings/suspend') ?>">
                                                             <i class="fa fa-tags"></i><span class="text"> <?= lang('suspend'); ?></span>
                                                         </a>
-                                                    </li><!--
+                                                    </li>
                                                     <li id="system_settings_suspend_layout">
                                                         <a href="<?= site_url('system_settings/suspend_layout') ?>">
                                                             <i class="fa fa-tags"></i><span class="text"> <?= lang('suspend_layout'); ?></span>
                                                         </a>
-                                                    </li>-->                                                                                              
+                                                    </li>                                                                                              
                                                     <li id="system_settings_email_templates">
                                                         <a href="<?= site_url('system_settings/email_templates') ?>">
                                                             <i class="fa fa-envelope"></i><span class="text"> <?= lang('email_templates'); ?></span>
                                                         </a>
-                                                    </li>
+                                                    </li> -->
 													<li id="system_settings_payment_term">
                                                         <a href="<?= site_url('system_settings/payment_term') ?>">
                                                             <i class="fa fa-money"></i><span class="text"> <?= lang('payment_term'); ?></span>
@@ -1212,7 +1212,7 @@
                                                             <i class="fa fa-key"></i><span class="text"> <?= lang('group_permissions'); ?></span>
                                                         </a>
                                                     </li>
-													<li id="system_settings_define_principle">
+												<!--	<li id="system_settings_define_principle">
                                                         <a href="<?= site_url('system_settings/define_principle') ?>">
                                                             <i class="fa fa-key"></i><span class="text"> <?= lang('define_principle'); ?></span>
                                                         </a>
@@ -1221,13 +1221,13 @@
                                                         <a href="<?= site_url('system_settings/define_frequency') ?>">
                                                             <i class="fa fa-key"></i><span class="text"> <?= lang('define_frequency'); ?></span>
                                                         </a>
-                                                    </li>
+                                                    </li> -->
 													<li id="group_area">
 														<a class="submenu" href="<?= site_url('system_settings/group_area'); ?>">
 															<i class="fa fa-plus-circle"></i><span class="text"> <?= lang('group_area'); ?></span>
 														</a>
 													</li>
-                                                    <li id="system_settings_backups">
+                                                <!--    <li id="system_settings_backups">
                                                         <a href="<?= site_url('system_settings/backups') ?>">
                                                             <i class="fa fa-database"></i><span class="text"> <?= lang('backups'); ?></span>
                                                         </a>
@@ -1242,7 +1242,7 @@
                                                         <a href="<?= site_url('system_settings/audit_trail') ?>">
                                                             <i class="fa fa-pencil"></i><span class="text"> <?= lang('audit_trail'); ?></span>
                                                         </a>
-                                                    </li>
+                                                    </li> -->
                                         </ul>
                                     </li>
                                 <?php } ?>
@@ -1705,21 +1705,21 @@
 											<?php } ?>
 											
 											<?php if ($GP['products-items_convert']) { ?>
-												<li id="products_list_convert" class="sub_navigation">
+											<!--	<li id="products_list_convert" class="sub_navigation">
 													<a class="submenu" href="<?= site_url('products/list_convert'); ?>">
 														<i class="fa fa-barcode"></i>
 														<span class="text"> <?= lang('list_convert'); ?></span>
 													</a>
-												</li>
+												</li> -->
 											<?php } ?>
 											
 											<?php if ($GP['products_convert_add']) { ?>
-												<li id="products_items_convert" class="sub_navigation">
+											<!--	<li id="products_items_convert" class="sub_navigation">
 													<a class="submenu" href="<?= site_url('products/items_convert'); ?>">
 														<i class="fa fa-plus-circle"></i>
 														<span class="text"> <?= lang('add_convert'); ?></span>
 													</a>
-												</li>
+												</li> -->
 											<?php } ?>
 											
 											<?php if ($GP['products-return_list']) { ?>
@@ -1764,7 +1764,7 @@
 												</li>
 											<?php } ?>
 											<?php if ($GP['product_stock_count']) { ?>
-												<li id="products_barcode_count_stock" class="sub_navigation">
+											<!--	<li id="products_barcode_count_stock" class="sub_navigation">
 														<a class="submenu" href="<?= site_url('products/barcode_count_stock'); ?>">
 															<i class="fa fa-filter"></i>
 															<span class="text"> <?= lang('barcode_count_stock'); ?></span>
@@ -1781,7 +1781,7 @@
 															<i class="fa fa-plus-circle"></i>
 															<span class="text"> <?= lang('add_count_stock'); ?></span>
 														</a>
-													</li>
+													</li> -->
 											<?php } ?>
 											
 											<!-- <?php if ($GP['products-import']) { ?>
@@ -1866,19 +1866,19 @@
 											</li>
 										<?php }
 										if ($GP['sales-deliveries']) { ?>
-										<li id="sales_deliveries">
+									<!--	<li id="sales_deliveries">
 											<a class="submenu" href="<?= site_url('sales/deliveries'); ?>">
 												<i class="fa fa-truck"></i><span class="text"> <?= lang('list_deliveries'); ?></span>
 											</a>
-										</li>
+										</li> -->
 										<?php } 
 										if ($GP['sales-add_delivery']) { ?>
-											<li id="sales_add_deliveries">
+										<!--	<li id="sales_add_deliveries">
 												<a class="submenu" href="<?= site_url('sales/add_deliveries'); ?>">
 													<i class="fa fa-plus-circle"></i>
 													<span class="text"> <?= lang('add_deliveries'); ?></span>
 												</a>
-											</li>
+											</li> -->
 										<?php }
 										if ($GP['customers_balance']) { ?>
 											<li id="sales_customer_balance">
@@ -1897,11 +1897,11 @@
 											</li>
 										<?php }
                                         if ($GP['sales-gift_cards']) { ?>
-                                            <li id="sales_gift_cards">
+                                            <!-- <li id="sales_gift_cards">
                                                 <a class="submenu" href="<?= site_url('sales/gift_cards'); ?>">
                                                     <i class="fa fa-credit-card"></i><span class="text"> <?= lang('list_gift_cards'); ?></span>
                                                 </a>
-                                            </li>
+                                            </li> -->
                                         <?php }
 										if ($GP['sales-return_sales']) { ?>
 											<!--
@@ -1922,30 +1922,30 @@
 											</li>
 										<?php } ?>
 										<?php if($GP['room-index']){ ?>
-											<li id="sales_house_calendar">
+										<!--	<li id="sales_house_calendar">
 												<a class="submenu" href="<?= site_url('sales/house_calendar'); ?>">
 													<i class="fa fa-building-o tip"></i>
 													<span class="text"> <?= lang('suspend_calendar'); ?></span>
 												</a>
-											</li>
+											</li> -->
 										<?php } ?>
 											
 										<?php if($GP['sale-room-index']){ ?>
-											<li id="sales_house_sales">
+										<!--	<li id="sales_house_sales">
 												<a class="submenu" href="<?= site_url('sales/house_sales'); ?>">
 													<i class="fa fa-building"></i>
 													<span class="text"> <?= lang('list_sales_suspend'); ?></span>
 												</a>
-											</li>
+											</li> -->
 										<?php } ?>
                                         <?php
                                             if ($GP['sales-loan']) { ?>
-                                            <li id="sales_sales_loans">
+                                        <!--    <li id="sales_sales_loans">
                                                 <a class="submenu" href="<?= site_url('sales/sales_loans'); ?>">
                                                     <i class="fa fa-money"></i>
                                                     <span class="text"> <?= lang('installment'); ?></span>
                                                 </a>
-                                            </li>
+                                            </li> -->
                                         <?php } ?>
                                         <?php if ($GP['sales-return_sales']) { ?>
                                             
@@ -2353,18 +2353,18 @@
 												</li>
 										<?php } ?>
 										<?php if ($GP['drivers-index']){ ?>	
-											<li id="drivers_index">
+										<!--	<li id="drivers_index">
 												<a class="submenu" href="<?= site_url('drivers'); ?>">
 													<i class="fa fa-users"></i><span class="text"> <?= lang('list_drivers'); ?></span>
 												</a>
-											</li>
+											</li> -->
 										<?php } ?>
 										<?php if ($GP['drivers-add']){ ?>	
-											<li id="drivers_index">
+										<!--	<li id="drivers_index">
 												<a class="submenu" href="<?= site_url('drivers/add'); ?>" data-toggle="modal" data-target="#myModal">
 													<i class="fa fa-plus-circle"></i><span class="text"> <?= lang('add_driver'); ?></span>
 												</a>
-											</li>
+											</li> -->
 										<?php } ?>
                                         <?php if ($GP['suppliers-index']) { ?>
                                                 <li id="suppliers_index">
