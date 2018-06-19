@@ -91,7 +91,7 @@
             {column_number: 5, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text"},
             {column_number: 6, filter_default_label: "[<?=lang('sale_status');?>]", filter_type: "text"},
             {column_number: 10, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
-            {column_number: 11, filter_default_label: "[<?=lang('created_by');?>]", filter_type: "text"},
+            {column_number: 11, filter_default_label: "[<?=lang('username');?>]", filter_type: "text"},
         ], "footer");
 
         $(document).on('click', '.email_receipt', function () {

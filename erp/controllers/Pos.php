@@ -203,9 +203,10 @@ class Pos extends MY_Controller
                 ->select($this->db->dbprefix('sales').".id as id, 
 				".$this->db->dbprefix('sales').".date,
 				".$this->db->dbprefix('payments').".date as pdate,
-				".$this->db->dbprefix('sales').".reference_no, biller.company, customer, sale_status, grand_total, paid, (grand_total - paid) AS balance, payment_status,erp_sales.created_by")
+				".$this->db->dbprefix('sales').".reference_no, biller.company, customer, sale_status, grand_total, paid, (grand_total - paid) AS balance, payment_status,erp_users.username")
                 ->from('sales')
 				->join('payments', 'payments.sale_id=sales.id', 'left')
+				->join('users', 'users.id=sales.created_by', 'left')
                 ->join('companies', 'companies.id=sales.customer_id', 'left')
 				->join('companies as erp_biller', 'biller.id = sales.biller_id', 'inner')
                 ->where_in('sales.warehouse_id', $warehouse_id)
@@ -215,9 +216,10 @@ class Pos extends MY_Controller
                 ->select($this->db->dbprefix('sales').".id as id, 
 				".$this->db->dbprefix('sales').".date,
 				".$this->db->dbprefix('payments').".date as pdate,
-				".$this->db->dbprefix('sales').".reference_no, biller.company, customer, sale_status , grand_total, paid, (grand_total - paid) AS balance, payment_status,erp_sales.created_by")
+				".$this->db->dbprefix('sales').".reference_no, biller.company, customer, sale_status , grand_total, paid, (grand_total - paid) AS balance, payment_status,erp_users.username")
                 ->from('sales')
 				->join('payments', 'payments.sale_id=sales.id', 'left')
+                ->join('users', 'users.id=sales.created_by', 'left')
                 ->join('companies', 'companies.id=sales.customer_id', 'left')
 				->join('companies as erp_biller', 'biller.id = sales.biller_id', 'inner')
                 ->group_by('sales.id');
