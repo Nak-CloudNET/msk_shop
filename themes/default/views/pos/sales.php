@@ -70,7 +70,7 @@
             "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            }, {"mRender": fld}, {"mRender": fld}, null, null, null, {"mRender": row_status}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status}, {"bSortable": false}],
+            }, {"mRender": fld}, {"mRender": fld}, null, null, null, {"mRender": row_status}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": currencyFormat}, {"mRender": row_status},null, {"bSortable": false}],
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
                 var gtotal = 0, paid = 0, balance = 0;
                 for (var i = 0; i < aaData.length; i++) {
@@ -91,6 +91,7 @@
             {column_number: 5, filter_default_label: "[<?=lang('customer');?>]", filter_type: "text"},
             {column_number: 6, filter_default_label: "[<?=lang('sale_status');?>]", filter_type: "text"},
             {column_number: 10, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
+            {column_number: 11, filter_default_label: "[<?=lang('created_by');?>]", filter_type: "text"},
         ], "footer");
 
         $(document).on('click', '.email_receipt', function () {
@@ -420,6 +421,7 @@
                             <th><?= lang("paid"); ?></th>
                             <th><?= lang("balance"); ?></th>
                             <th><?= lang("payment_status"); ?></th>
+                            <th><?= lang("Create By"); ?></th>
                             <th style="width:80px; text-align:center;"><?= lang("actions"); ?></th>
                         </tr>
                         </thead>
@@ -443,6 +445,7 @@
                             <th><?= lang("paid"); ?></th>
                             <th><?= lang("balance"); ?></th>
                             <th class="defaul-color"></th>
+                            <th></th>
                             <th style="width:80px; text-align:center;"><?= lang("actions"); ?></th>
                         </tr>
                         </tfoot>

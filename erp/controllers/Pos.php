@@ -203,7 +203,7 @@ class Pos extends MY_Controller
                 ->select($this->db->dbprefix('sales').".id as id, 
 				".$this->db->dbprefix('sales').".date,
 				".$this->db->dbprefix('payments').".date as pdate,
-				".$this->db->dbprefix('sales').".reference_no, biller.company, customer, sale_status, grand_total, paid, (grand_total - paid) AS balance, payment_status")
+				".$this->db->dbprefix('sales').".reference_no, biller.company, customer, sale_status, grand_total, paid, (grand_total - paid) AS balance, payment_status,erp_sales.created_by")
                 ->from('sales')
 				->join('payments', 'payments.sale_id=sales.id', 'left')
                 ->join('companies', 'companies.id=sales.customer_id', 'left')
@@ -215,7 +215,7 @@ class Pos extends MY_Controller
                 ->select($this->db->dbprefix('sales').".id as id, 
 				".$this->db->dbprefix('sales').".date,
 				".$this->db->dbprefix('payments').".date as pdate,
-				".$this->db->dbprefix('sales').".reference_no, biller.company, customer, sale_status , grand_total, paid, (grand_total - paid) AS balance, payment_status")
+				".$this->db->dbprefix('sales').".reference_no, biller.company, customer, sale_status , grand_total, paid, (grand_total - paid) AS balance, payment_status,erp_sales.created_by")
                 ->from('sales')
 				->join('payments', 'payments.sale_id=sales.id', 'left')
                 ->join('companies', 'companies.id=sales.customer_id', 'left')
