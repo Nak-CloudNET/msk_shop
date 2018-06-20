@@ -78,9 +78,9 @@
 				nRow.id = aData[0];
 				
 				var action = $('td:eq(14)', nRow);
-				if (aData[13] == 'paid') {
+				/*if (aData[13] == 'paid') {
 					action.find('.edit').remove();
-				}
+				}*/
 				
 				nRow.className = "invoice_link";
 				

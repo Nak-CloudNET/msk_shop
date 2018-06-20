@@ -1555,7 +1555,7 @@ class Sales_model extends CI_Model
 
     public function updateSale($id, $data, $items = array(),$sale_data)
     {	
-		// $this->erp->print_arrays($data);exit();
+		//$this->erp->print_arrays($data);exit();
 		$deposit_customer_id = $data['deposit_customer_id'];
 		unset($data['deposit_customer_id']);
         $this->resetSaleActions($id);
@@ -1568,8 +1568,16 @@ class Sales_model extends CI_Model
 			}else {
 				$data['total_cost'] += $totalCostProducts->total_cost;
 			}
+
 		}
-		//$this->erp->print_arrays($id);
+
+		// If user edit and grand total is less than paid amount -> not allow update
+        if($data['grand_total'] < $data['paid']){
+            $this->session->set_flashdata('error', lang("grand_total_x_<_paid_x"));
+            redirect($_SERVER["HTTP_REFERER"]);
+        }
+        unset($data['paid']);
+
         if ($this->db->update('sales', $data, array('id' => $id))) {
 			foreach($sale_data as $sa){
 				$this->db->delete("inventory_valuation_details",array("field_id"=>$sa['slaeid']));
@@ -1615,6 +1623,7 @@ class Sales_model extends CI_Model
                     }
                 }
 				$i++;
+
             }
 			//echo $data['paid'];exit;
 			if($data['payment_status'] == 'paid' || $data['payment_status'] == 'partial'){
