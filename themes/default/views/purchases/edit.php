@@ -95,37 +95,6 @@
 	});
 	
 	$(document).ready(function () {
-		/*
-		$("#potax2").on("change",function()
-		{
-			var Debit_t = $("#calDebit").html()-0;
-			
-			if (site.settings.tax2 != 0) {
-				if (potax2 = localStorage.getItem('potax2')) {
-					$.each(tax_rates, function () {
-						if (this.id == potax2) {
-							if (this.type == 2) {
-								invoice_tax = parseFloat(this.rate);
-							}
-							if (this.type == 1) {
-								invoice_tax = parseFloat(((Debit_t) * this.rate) / 100);
-							}
-						}
-						
-					});
-				}
-			}
-			alert(invoice_tax);
-			if (site.settings.tax2 != 0) {
-            $('#ttax2').text(formatPurDecimal(invoice_tax));
-			}
-			
-			var gtotal = (parseFloat(Debit_t) + formatPurDecimal(invoice_tax));
-			$('#gtotal').text(formatPurDecimal(gtotal));
-		});
-		*/
-		
-		
 		$('.removefile').live('click', function(){
 			var divId 	= $(this).attr('data');
 			if( FieldCount == 2 ) {
@@ -156,7 +125,7 @@
 				return false;
 			}
 		});
-        
+
         $(".datetime").datetimepicker({
             format: site.dateFormats.js_ldate,
             fontAwesome: true,
@@ -167,7 +136,7 @@
             todayHighlight: 1,
             startView: 2,
             forceParse: 0
-        }).datetimepicker('update', new Date());
+        }).datetimepicker('update', '<?= $this->erp->hrld($purchase->date);?>');
 		
 		function chart_account(){
 			$('#account_section').bind("change", function(){
@@ -525,7 +494,6 @@
 
                 <div class="row">
                     <div class="col-lg-12">
-
                         <?php if ($Owner || $Admin) { ?>
                             <div class="col-md-4">
                                 <div class="form-group">
