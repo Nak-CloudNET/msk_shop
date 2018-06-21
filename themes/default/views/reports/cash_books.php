@@ -29,7 +29,7 @@
 
 <div class="box">
     <div class="box-header">
-        <h2 class="blue"><i class="fa-fw fa fa-th-large"></i><?= lang('Cash_Books_report'); ?><?php
+        <h2 class="blue"><i class="fa fa-book" aria-hidden="true"></i><?= lang('Cash_Books_report'); ?><?php
             if ($this->input->post('start_date')) {
                 echo " From " . $this->input->post('start_date') . " to " . $this->input->post('end_date');
             }
