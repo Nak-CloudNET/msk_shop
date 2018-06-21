@@ -18191,13 +18191,23 @@ function salesDetail_actions($start = NULL, $end = NULL){
 			$this->data['customer'] = $post['customer'];
 			$this->data['biller'] = $post['biller'];
 			$this->data['warehouse'] = $post['warehouse'];
-			$this->data['start_date'] = $post['start_date'];
-			$this->data['end_date'] = $post['end_date'];
 			$this->data['customer_group'] = $post['customer_group'];
 			$this->data['user'] = $post['user'];
 			$this->data['type'] = $post['type'];
 			$this->data['types'] = $post['types'];
 		}
+        if($post['start_date'])
+        {
+            $this->data['start_date'] = $post['start_date'];
+        }else{
+            $this->data['start_date'] = date('01/m/Y');
+        }
+        if($post['end_date'])
+        {
+            $this->data['end_date'] = $post['end_date'];
+        }else{
+            $this->data['end_date']= date('30/m/Y');
+        }
 		
 		
 		if($biller_id != NULL){
@@ -18353,14 +18363,13 @@ function salesDetail_actions($start = NULL, $end = NULL){
 		}
 		
 		if($this->data['start_date'] && $this->data['end_date']){
-			$start = $this->erp->fld($this->input->post('start_date')).' 00:00:00';
-			$end   = $this->erp->fld($this->input->post('end_date')).' 23:59:59';
+			$start = $this->erp->fld($this->data['start_date']).' 00:00:00';
+			$end   = $this->erp->fld($this->data['end_date']).' 23:59:59';
 			$sql3 .= " AND date >= '{$start}'";
 			$sql3 .= " AND date <= '{$end}'";
 		}
 		
 		$sales = $this->db->query("SELECT * FROM ({$sql1} UNION {$sql2}) AS TEMP WHERE 1=1 {$sql3} ORDER BY id DESC")->result();
-									
 		$this->pagination->initialize($config);
 		$this->data["pagination"] = $this->pagination->create_links();
 		$this->data['sales'] = $sales;
