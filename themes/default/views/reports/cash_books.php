@@ -1,19 +1,19 @@
 <?php
 
-$v = "";
-/* if($this->input->post('name')){
-  $v .= "&product=".$this->input->post('product');
-} */
+    $v = "";
 
-if ($this->input->post('account')) {
-    $v .= "&account=" . $this->input->post('account');
-}
-if ($this->input->post('start_date')) {
-    $v .= "&start_date=" . $this->input->post('start_date');
-}
-if ($this->input->post('end_date')) {
-    $v .= "&end_date=" . $this->input->post('end_date');
-}
+    if ($this->input->post('account')) {
+        $v .= "&account=" . $this->input->post('account');
+    }
+    if ($this->input->post('start_date')) {
+        $v .= "&start_date=" . $this->input->post('start_date');
+    }
+    if ($this->input->post('end_date')) {
+        $v .= "&end_date=" . $this->input->post('end_date');
+    }
+    if ($this->input->post('reference_no')) {
+        $v .= "&reference_no=" . $this->input->post('reference_no');
+    }
 
 ?>
 <style type="text/css">
@@ -107,6 +107,12 @@ if ($this->input->post('end_date')) {
                                 <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : $this->erp->hrsd($end_date2)), 'class="form-control date" id="end_date"'); ?>
                             </div>
                         </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="control-label" for="reference_no"><?= lang("reference_no"); ?></label>
+                                <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : ""), 'class="form-control tip" id="reference_no"'); ?>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <div
@@ -163,6 +169,9 @@ if ($this->input->post('end_date')) {
 									if($biller_id != "" && $biller_id != NULL){
 										$getListGLTran->where('biller_id', $biller_id);
 									}
+                                    if ($this->input->post('reference_no') ) {
+                                        $getListGLTran->where('reference_no', $this->input->post('reference_no'));
+                                    }
 									$gltran_list = $getListGLTran->get()->result();
 									if($gltran_list) { ?>
 										<tr>
@@ -231,13 +240,7 @@ if ($this->input->post('end_date')) {
             $("#form").slideUp();
             return false;
         });
-		/*
-        $('#pdf').click(function (event) {
-            event.preventDefault();
-            window.location.href = "<?=site_url('reports/getRrgisterlogs/pdf/?v=1'.$v)?>";
-            return false;
-        });
-		*/
+
 		$('#pdf').click(function (event) {
             event.preventDefault();
             window.location.href = "<?=site_url('reports/cash_books/pdf')?>";

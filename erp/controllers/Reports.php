@@ -12421,6 +12421,9 @@ class Reports extends MY_Controller
 					if($biller_id != "" && $biller_id != NULL && $biller_id != 0){
 						$getListGLTran->where('biller_id', $biller_id);
 					}
+                    if ($this->input->post('reference_no') ) {
+                        $getListGLTran->where('reference_no', $this->input->post('reference_no'));
+                    }
 					$gltran_list = $getListGLTran->get()->result();
 					
 					$acc_name = "";
