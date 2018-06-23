@@ -4923,7 +4923,7 @@ class Purchases extends MY_Controller
 				$i 				= 0;
 				$data 			= array();
 				$total 			= 0;
-				
+
 				$data[] =  array(
 						'tran_type' 	=> 'PURCHASE EXPENSE',
 						'tran_no' 		=> $ac_old_transno,
@@ -4933,11 +4933,11 @@ class Purchases extends MY_Controller
 						'description'	=> $description,
 						'amount' 		=> (-($amount_ap + $amount_tax)),
 						'biller_id' 	=> $biller_id,
-						'customer_id' => $this->input->post('customers'),
-						'sale_id' => $this->input->post('customer_no'),
+						'customer_id'   => $this->input->post('customers'),
+						'sale_id'       => $this->input->post('customer_no'),
 						);	
 				
-				if($amount_tax > 0) {		
+				if($amount_tax > 0) {
 					$data[] =  array(
 							'tran_type' 	=> 'PURCHASE EXPENSE',
 							'tran_no' 		=> $ac_old_transno,
@@ -4947,8 +4947,8 @@ class Purchases extends MY_Controller
 							'description'	=> $description,
 							'amount' 		=> $amount_tax,
 							'biller_id' 	=> $biller_id,
-							'customer_id' => $this->input->post('customers'),
-							'sale_id' => $this->input->post('customer_no'),
+							'customer_id'   => $this->input->post('customers'),
+							'sale_id'       => $this->input->post('customer_no'),
 							);	
 				}
 			
@@ -4989,7 +4989,12 @@ class Purchases extends MY_Controller
 					}
 				}
 
-		
+                $paid = $this->site->getPaymentByPurchaseID($id);
+				if ($paid->amount > $total) {
+                    $this->session->set_flashdata('error', lang("grand_total_x_<_paid_x"));
+                    redirect($_SERVER["HTTP_REFERER"]);
+                }
+
 				$this->purchases_model->updateJournal($reference_no, $data);
 				 
 				if ($this->Settings->tax2 != 0) {

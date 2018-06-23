@@ -2623,7 +2623,7 @@ class Account extends MY_Controller
 		$description = $this->input->post('description');
 		$debit = $this->input->post('debit');
 		$credit = $this->input->post('credit');
-	//$this->erp->print_arrays($tran_id);
+
 		$created_name = $this->input->post('name');
 		$created_type = $this->input->post('type');
 		$sale_id = $this->input->post('customer_invoice_no');
@@ -2687,7 +2687,6 @@ class Account extends MY_Controller
 		$this->session->set_flashdata('message', $this->lang->line("journal_updated"));
 		redirect('account/listJournal');
 	}
-
 
 	public function deleteJournal($id){
 		$this->erp->checkPermissions(NULL, TRUE);
