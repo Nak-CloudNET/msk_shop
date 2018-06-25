@@ -12310,7 +12310,8 @@ class Reports extends MY_Controller
         $this->erp->checkPermissions('cash_book',NULL,'account_report');
         $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
         $this->data['categories'] = $this->site->getAllCategories();
-        if ($this->input->post('start_date')) {
+        
+		if ($this->input->post('start_date')) {
             $dt = "From " . $this->input->post('start_date') . " to " . $this->input->post('end_date');
 			$this->data['start_date2'] = $this->erp->fsd($this->input->post('start_date'));
 			
@@ -12324,6 +12325,9 @@ class Reports extends MY_Controller
 		}else{
 			$this->data['end_date2'] =  date('Y-m-t');
 		}
+		
+		
+		
 		$user = $this->site->getUser();
 		if($biller_id != NULL){
 			$this->data['biller_id'] = $biller_id;

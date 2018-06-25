@@ -95,6 +95,14 @@ if ($this->input->post('end_date')) {
                                 ?>
                             </div>
                         </div>
+						
+						<div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="control-label" for="reference_no"><?= lang("reference_no"); ?></label>
+                                <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : ""), 'class="form-control tip" id="reference_no"'); ?>
+                            </div>
+                        </div>
+						
                         <div class="col-sm-4">
                             <div class="form-group">
                                 <?= lang("start_date", "start_date"); ?>
@@ -154,6 +162,10 @@ if ($this->input->post('end_date')) {
 									$getListGLTran = $this->db->select("*")->from('gl_trans')->where('account_code =', $val->accountcode);
 								
 									$getListGLTran->where('date_format(tran_date,"%Y-%m-%d") >="'.$start_date2.'" AND date_format(tran_date,"%Y-%m-%d") <="'.$end_date2.'"');
+									
+									if($this->input->post('reference_no')){
+										$getListGLTran->where('reference_no',$this->input->post('reference_no'));
+									}
 									
 									if (!$this->input->post('end_date') && !$this->input->post('end_date'))
 									{
