@@ -1669,7 +1669,7 @@
 														-->
 														<li id="reports_cash_book_report" <?=($this->uri->segment(2) === 'cash_books' ? 'class="active"' : '')?> >
 															<a href="<?= site_url('reports/cash_books') ?>">
-																<i class="fa fa-money"></i><span class="text"> <?= lang('cash_book'); ?></span>
+                                                                <i class="fa fa-book" aria-hidden="true"></i><span class="text"> <?= lang('cash_book'); ?></span>
 															</a>
 														</li>
 													</ul>
@@ -2895,7 +2895,7 @@
 												<?php if($GP['account_report-cash_book']){ ?>
 												<li id="reports_cash_book_report" <?=($this->uri->segment(2) === 'cash_books' ? 'class="active"' : '')?> >
 													<a href="<?= site_url('reports/cash_books') ?>">
-														<i class="fa fa-money"></i><span class="text"> <?= lang('cash_book'); ?></span>
+                                                        <i class="fa fa-book" aria-hidden="true"></i><span class="text"> <?= lang('cash_book'); ?></span>
 													</a>
 												</li>
 												<?php } ?>

@@ -3802,6 +3802,7 @@ class Sales extends MY_Controller
 
             $payment_term           = $this->input->post('payment_term');
             $payment_term_details   = $this->site->getAllPaymentTermByID($payment_term);
+            $sale_payment           = $this->site->getSalePayments($id);
             $due_date               = $payment_term_details[0]->id ? date('Y-m-d', strtotime('+' . $payment_term_details[0]->due_day . ' days')) : NULL;
 
             $shipping               = $this->input->post('shipping') ? $this->input->post('shipping') : 0;
@@ -3813,7 +3814,7 @@ class Sales extends MY_Controller
             $staff_note             = $this->erp->clear_tags($this->input->post('staff_note'));
 			$paid_by                = $this->input->post('paid_by');
 			$amout_paid             = $this->input->post('amount-paid');
-                        $status 		= $this->input->post('status');
+			$status 		        = $this->input->post('status');
 
             $total = 0;
             $product_tax = 0;
@@ -3822,6 +3823,7 @@ class Sales extends MY_Controller
             $order_discount = 0;
             $percentage = '%';
             $i = isset($_POST['product_code']) ? sizeof($_POST['product_code']) : 0;
+
             for ($r = 0; $r < $i; $r++) {
                 $item_id = $_POST['product_id'][$r];
                 $item_type = $_POST['product_type'][$r];
@@ -3991,6 +3993,7 @@ class Sales extends MY_Controller
                 'grand_total' => $grand_total,
                 'total_items' => $total_items,
                 'sale_status' => $sale_status,
+                'paid' => $sale_payment[0]->amount,
                 //'payment_status' => $payment_status,
                 //'paid' => ($amout_paid != '' || $amout_paid != 0 || $amout_paid != null)? $amout_paid : 0,
                 'payment_term' => $payment_term,

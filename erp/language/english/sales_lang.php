@@ -315,3 +315,4 @@ $lang["list_delivery_alerts"]				= "List Delivery Alerts";
 $lang["statement_with_logo"]				= "Statement With Logo";
 $lang["statement_with_logo"]				= "Statement With Logo";
 $lang["statement_without_logo"]				= "Statement Without Logo";
+$lang["grand_total_x_<_paid_x"]				= "Grand Total Amount Is Less Than Paid Amount";
