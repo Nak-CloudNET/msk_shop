@@ -5053,32 +5053,23 @@ class Sales extends MY_Controller
                     $this->load->library('excel');
                     $this->excel->setActiveSheetIndex(0);
                     $this->excel->getActiveSheet()->setTitle(lang('sales'));
-                    $this->excel->getActiveSheet()->SetCellValue('A1', lang('date'));
-                    $this->excel->getActiveSheet()->SetCellValue('B1', lang('quote_no'));
-                    $this->excel->getActiveSheet()->SetCellValue('C1', lang('so_no'));
-                    $this->excel->getActiveSheet()->SetCellValue('D1', lang('sales_num'));
-                    $this->excel->getActiveSheet()->SetCellValue('E1', lang('project'));
-                    $this->excel->getActiveSheet()->SetCellValue('F1', lang('customer'));
-                    $this->excel->getActiveSheet()->SetCellValue('G1', lang('saleman'));
-                    $this->excel->getActiveSheet()->SetCellValue('H1', lang('sale_status'));
-                    $this->excel->getActiveSheet()->SetCellValue('I1', lang('grand_total'));
-                    $this->excel->getActiveSheet()->SetCellValue('J1', lang('deposit'));
-                    $this->excel->getActiveSheet()->SetCellValue('K1', lang('paid'));
-                    $this->excel->getActiveSheet()->SetCellValue('L1', lang('balance'));
-                    $this->excel->getActiveSheet()->SetCellValue('M1', lang('payment_status'));
-                    $this->excel->getActiveSheet()->getStyle('A1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('B1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('C1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('D1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('E1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('F1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('G1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('H1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('I1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('J1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('K1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('L1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('M1')->getFont()->setBold(true);
+                    $this->excel->getActiveSheet()->SetCellValue('A1', '');
+                    $this->excel->getActiveSheet()->SetCellValue('A2', lang('date'));
+                    $this->excel->getActiveSheet()->SetCellValue('B2', lang('quote_no'));
+                    $this->excel->getActiveSheet()->SetCellValue('C2', lang('so_no'));
+                    $this->excel->getActiveSheet()->SetCellValue('D2', lang('sales_num'));
+                    $this->excel->getActiveSheet()->SetCellValue('E2', lang('project'));
+                    $this->excel->getActiveSheet()->SetCellValue('F2', lang('customer'));
+                    $this->excel->getActiveSheet()->SetCellValue('G2', lang('saleman'));
+                    $this->excel->getActiveSheet()->SetCellValue('H2', lang('sale_status'));
+                    $this->excel->getActiveSheet()->SetCellValue('I2', lang('grand_total'));
+                    $this->excel->getActiveSheet()->SetCellValue('J2', lang('deposit'));
+                    $this->excel->getActiveSheet()->SetCellValue('K2', lang('paid'));
+                    $this->excel->getActiveSheet()->SetCellValue('L2', lang('balance'));
+                    $this->excel->getActiveSheet()->SetCellValue('M2', lang('payment_status'));
+                    $this->excel->getActiveSheet()->getStyle('A2:M2')->getFont()->setBold(true);
+                    $this->excel->getActiveSheet()->getRowDimension(1)->setRowHeight(70);
+
 					$styleArray = array(
                         'borders' => array(
                             'allborders' => array(
@@ -5086,7 +5077,7 @@ class Sales extends MY_Controller
                             )
                         )
                     );
-                    $row = 2;
+                    $row = 3;
                     foreach ($_POST['val'] as $id) {
                         $sale = $this->sales_model->getInvoiceByID($id);
                         $sum_grand += $sale->grand_total;
@@ -5250,26 +5241,19 @@ class Sales extends MY_Controller
                     $this->load->library('excel');
                     $this->excel->setActiveSheetIndex(0);
                     $this->excel->getActiveSheet()->setTitle(lang('sales'));
-                    $this->excel->getActiveSheet()->SetCellValue('A1', lang('date'));
-                    $this->excel->getActiveSheet()->SetCellValue('B1', lang('last_payments_date'));
-                    $this->excel->getActiveSheet()->SetCellValue('C1', lang('reference_no'));
-                    $this->excel->getActiveSheet()->SetCellValue('D1', lang('biller'));
-                    $this->excel->getActiveSheet()->SetCellValue('E1', lang('customer'));
-                    $this->excel->getActiveSheet()->SetCellValue('F1', lang('sale_status'));
-                    $this->excel->getActiveSheet()->SetCellValue('G1', lang('grand_total'));
-                    $this->excel->getActiveSheet()->SetCellValue('H1', lang('paid'));
-                    $this->excel->getActiveSheet()->SetCellValue('I1', lang('balance'));
-                    $this->excel->getActiveSheet()->SetCellValue('J1', lang('payment_status'));
-                    $this->excel->getActiveSheet()->getStyle('A1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('B1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('C1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('D1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('E1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('F1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('G1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('H1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('I1')->getFont()->setBold(true);
-                    $this->excel->getActiveSheet()->getStyle('J1')->getFont()->setBold(true);
+                    $this->excel->getActiveSheet()->SetCellValue('A1', '');
+                    $this->excel->getActiveSheet()->SetCellValue('A2', lang('date'));
+                    $this->excel->getActiveSheet()->SetCellValue('B2', lang('last_payments_date'));
+                    $this->excel->getActiveSheet()->SetCellValue('C2', lang('reference_no'));
+                    $this->excel->getActiveSheet()->SetCellValue('D2', lang('biller'));
+                    $this->excel->getActiveSheet()->SetCellValue('E2', lang('customer'));
+                    $this->excel->getActiveSheet()->SetCellValue('F2', lang('sale_status'));
+                    $this->excel->getActiveSheet()->SetCellValue('G2', lang('grand_total'));
+                    $this->excel->getActiveSheet()->SetCellValue('H2', lang('paid'));
+                    $this->excel->getActiveSheet()->SetCellValue('I2', lang('balance'));
+                    $this->excel->getActiveSheet()->SetCellValue('J2', lang('payment_status'));
+                    $this->excel->getActiveSheet()->getStyle('A2:J2')->getFont()->setBold(true);
+                    $this->excel->getActiveSheet()->getRowDimension(1)->setRowHeight(70);
 
                     $styleArray = array(
                         'borders' => array(
@@ -5278,7 +5262,7 @@ class Sales extends MY_Controller
                             )
                         )
                     );
-                    $row = 2;
+                    $row = 3;
                     foreach ($_POST['val'] as $id) {
                         $sale = $this->sales_model->pos_sale($id);
                         $sum_grand += $sale->grand_total;
