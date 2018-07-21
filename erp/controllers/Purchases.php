@@ -746,6 +746,7 @@ class Purchases extends MY_Controller
                 $payment = array(
                     'date' 			=> $date,
                     'reference_no' 	=> $rreference,
+                    'purchase_id'   => $id,
                     'amount' 		=> $this->erp->formatDecimal($this->input->post('amount-paid')),
                     'paid_by' 		=> $this->input->post('paid_by'),
                     'cheque_no' 	=> $this->input->post('cheque_no'),
@@ -758,13 +759,12 @@ class Purchases extends MY_Controller
                     'type' 			=> 'returned',
                     'biller_id' 	=> $this->input->post('biller'),
 					'add_payment' 	=> '1',
-					'bank_account' => $this->input->post('bank_account')
+					'bank_account'  => $this->input->post('bank_account')
                 );
             } else {
                 $payment = array();
             }
 
-			
             if ($_FILES['document']['size'] > 0) {
                 $this->load->library('upload');
                 $config['upload_path'] = $this->digital_upload_path;
