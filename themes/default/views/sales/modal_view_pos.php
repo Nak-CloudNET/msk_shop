@@ -176,6 +176,7 @@ $statusCheck = $this->input->post("htest");
                         <td style="vertical-align:middle;">
                             <?= $product_name_setting ?>
                             <?= $row->details ? '<br>' . $row->details : ''; ?>
+                            <?= $row->product_noted ? '<br>' . $row->product_noted : ''; ?>
                             <?= $row->serial_no ? '<br>' . $row->serial_no : ''; ?>
                         </td>
                         <td style="width: 80px; text-align:center; vertical-align:middle;"><?php echo $product_unit ?></td>
