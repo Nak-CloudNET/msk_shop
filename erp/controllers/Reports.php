@@ -18411,6 +18411,7 @@ function salesDetail_actions($start = NULL, $end = NULL){
 			$this->data['user'] = $post['user'];
 			$this->data['type'] = $post['type'];
 			$this->data['types'] = $post['types'];
+			$this->data['note'] = $post['note'];
 		}
         if($post['start_date'])
         {
@@ -18468,6 +18469,9 @@ function salesDetail_actions($start = NULL, $end = NULL){
 		if($this->data['types']){
 			$this->db->where("pos", $this->data['types']);
 		}
+		if($this->data['note']){
+			$this->db->where("pos", $this->data['note']);
+		}
 		
 		if($this->data['start_date'] && $this->data['end_date']){
 			$this->db->where("date >=", $this->erp->fld($this->data['start_date']));
@@ -18518,6 +18522,7 @@ function salesDetail_actions($start = NULL, $end = NULL){
 					erp_sales.customer,
 					erp_sales.customer_id,
 					erp_sales.created_by,
+					erp_sale_items.product_noted,
 					erp_sales.pos
 				FROM
 					`erp_sales`
@@ -18546,6 +18551,7 @@ function salesDetail_actions($start = NULL, $end = NULL){
 					erp_return_sales.customer,
 					erp_return_sales.customer_id,
 					erp_return_sales.created_by,
+					erp_return_items.product_noted,
 					0 as pos
 				FROM
 					erp_return_sales
@@ -18576,6 +18582,9 @@ function salesDetail_actions($start = NULL, $end = NULL){
 		
 		if($this->data['types']){
 			$sql3 .= " AND pos = {$this->data['types']}";
+		}
+		if($this->data['note']){
+			$sql3 .= " AND product_noted like '%{$this->data['note']}%'";
 		}
 		
 		if($this->data['start_date'] && $this->data['end_date']){
