@@ -248,7 +248,7 @@
                 <div class="clearfix"></div>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered table-condensed table-striped">
+                    <table class="table table-bordered table-striped">
 						<thead>
 							<tr class="info-head">
 								<th style="min-width:30px; width: 30px; text-align: center;">
@@ -390,7 +390,7 @@
 											//$amounts +=	$amount;
 										 
 								?>
-										<tr>			
+										<tr style="white-space: pre-wrap">
 											<td></td>
 											<td>(<?= $sale_detail->product_name; ?>) <?= $sale_detail->product_code ?> </br><?= $sale_detail->product_noted ? '['. $sale_detail->product_noted .']' : ""?></td>
 											<td><?= $sale->biller ?></td>
