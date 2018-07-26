@@ -153,16 +153,18 @@
                 "mRender": checkbox
             }, {"mRender": fld}, null, null,null,null, {"mRender": row_status},{"mRender": currencyFormat}, {"mRender": currencyFormat},{"mRender": currencyFormat}, {"mRender": currencyFormat},{"mRender": row_status}, {"bVisible": false}, {"bSortable": false}],
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-                var total = 0, paid = 0, balance = 0;
+                var total = 0, returns = 0,paid = 0, balance = 0;
                 for (var i = 0; i < aaData.length; i++) {
                     total += parseFloat(aaData[aiDisplay[i]][7]);
-                    paid += parseFloat(aaData[aiDisplay[i]][8]);
-                    balance += parseFloat(aaData[aiDisplay[i]][9]);
+                    returns += parseFloat(aaData[aiDisplay[i]][8]);
+                    paid += parseFloat(aaData[aiDisplay[i]][9]);
+                    balance += parseFloat(aaData[aiDisplay[i]][10]);
                 }
                 var nCells = nRow.getElementsByTagName('th');
                 nCells[7].innerHTML = currencyFormat(total);
-                nCells[8].innerHTML = currencyFormat(paid);
-                nCells[9].innerHTML = currencyFormat(balance);
+                nCells[8].innerHTML = currencyFormat(returns);
+                nCells[9].innerHTML = currencyFormat(paid);
+                nCells[10].innerHTML = currencyFormat(balance);
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
@@ -171,7 +173,7 @@
             {column_number: 4, filter_default_label: "[<?=lang('ref_no');?>]", filter_type: "text", data: []},
 			{column_number: 5, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
 			{column_number: 6, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
-			{column_number: 10, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
+			{column_number: 11, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
             
         ], "footer");
 
