@@ -17369,6 +17369,218 @@ function salesDetail_actions($start = NULL, $end = NULL){
                 }
         }
     }
+
+    function inventory_profit($pdf, $excel,$reference,$wahouse_id,$product_id,$from_date,$to_date,$cate_id,$biller){
+        $wid = $this->reports_model->getWareByUserID();
+        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+        $row    = null;
+
+        if ($pdf || $excel) {
+                $this->load->library('excel');
+                $this->excel->setActiveSheetIndex(0);
+                $this->excel->getActiveSheet()->setTitle(lang('inventory'));
+                $this->excel->getActiveSheet()->SetCellValue('A1', lang(''));
+                $this->excel->getActiveSheet()->SetCellValue('B1', lang('date'));
+                $this->excel->getActiveSheet()->SetCellValue('C1', lang('reference'));
+                $this->excel->getActiveSheet()->SetCellValue('D1', lang('customer'));
+                $this->excel->getActiveSheet()->SetCellValue('E1', lang('project'));
+                $this->excel->getActiveSheet()->SetCellValue('F1', lang('quantity'));
+                $this->excel->getActiveSheet()->SetCellValue('G1', lang('price_amount'));
+                $this->excel->getActiveSheet()->SetCellValue('H1', lang('cost_amount'));
+                $this->excel->getActiveSheet()->SetCellValue('I1', lang('profit'));
+                if ($pdf) {
+                    $styleArray = array('borders' => array('allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN)));
+                    $this->excel->getDefaultStyle()->applyFromArray($styleArray);
+                }
+                $this->excel->getDefaultStyle()->getAlignment('A1:I1')->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $this->excel->getActiveSheet()->getStyle('A1'. $row.':I1'.$row)->getFont()->setBold(true);
+                $this->excel->getActiveSheet()->getStyle('A1' .$row.':I1'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                $row = 2;
+                $gqty = 0;
+                $gprice = 0;
+                $gcost = 0;
+                $gprofit = 0; 
+                $warehouses = $this->reports_model->getWarehousesProductProfit($wid,$wahouse_id,$cate_id,$product_id,$from_date,$to_date,$reference,$biller);
+
+                foreach($warehouses as $ware){
+                    
+                    $this->excel->getActiveSheet()->SetCellValue('A' . $row, "Warehouse >> ".$ware->warehouse);
+                    $this->excel->getActiveSheet()->mergeCells('A'.$row.':I'.$row);
+                    $this->excel->getActiveSheet()->getStyle('A'. $row.':I'.$row)->getFont()->setBold(true);
+                    $this->excel->getActiveSheet()->getStyle('A'. $row.':I'.$row)->getFont()->setSize(12);
+                    $categories = $this->reports_model->getCategoriesProductProfitByWarehouse($ware->warehouse_id,$cate_id,$product_id,$from_date,$to_date,$reference,$biller);
+                    
+                    $total_quantity_by_warehouse =0;
+                    $total_cost_by_warehouse =0;
+                    $total_price_by_warehouse =0;
+                    $total_profit_by_warehouse =0;
+                    
+                    $row++;   
+                    foreach($categories as $cat){
+                        
+                        $this->excel->getActiveSheet()->SetCellValue('A' .$row, "   "."Category >> ".$cat->category_name);
+                        $this->excel->getActiveSheet()->mergeCells('A'.$row.':I'.$row);
+                        $this->excel->getActiveSheet()->getStyle('A'. $row)->getFont()->setBold(true);
+                        $this->excel->getActiveSheet()->getStyle('A'. $row.':I'.$row)->getFont()->setSize(11);
+                        $products = $this->reports_model->getProductsProfitByWhCat($ware->warehouse_id,($cate_id?$cate_id:$cat->id),$product_id,$from_date,$to_date,$reference,$biller);
+                        $row++;
+
+                        foreach ($products as $pro) {
+
+                            if(!empty($pro->product_id)){
+                               $this->excel->getActiveSheet()->SetCellValue('A' .$row, $pro->product_code?"     ".$pro->product_code.' >> '.$pro->product_name:"     ".$pro->product_id.' >> '.$pro->product_name.'('.$pro->un.')');
+                               $this->excel->getActiveSheet()->mergeCells('A'.$row.':I'.$row);
+                               $this->excel->getActiveSheet()->getStyle('A'. $row)->getFont()->setBold(true);
+                            }
+                        
+                            $total_quantity = 0;
+                            $total_cost = 0;
+                            $total_price = 0;
+                            $total_profit = 0;
+                            $unit_name = "";
+                                                
+                            $prod = $this->reports_model->getProductsProfitByProduct($ware->warehouse_id,($cate_id?$cate_id:$cat->id),($product_id?$product_id:$pro->product_id),$from_date,$to_date,$reference,$biller);
+                        
+                            $row++;
+                            foreach ($prod as $getpro) {
+                                
+                                $p_qty = $getpro->quantity;
+                                $unit_name = $this->erp->convert_unit_2_string($getpro->product_id,$p_qty);
+                                $unit_cost = $this->erp->formatMoney($getpro->unit_cost);
+                                $unit_price = $getpro->unit_price;
+                                $unit_price_amount = $this->erp->formatMoney($getpro->option_id ? ($getpro->unit_price * $getpro->quantity) : ($getpro->unit_price * $p_qty));
+                                $profit = $unit_price_amount - $unit_cost;
+                                $total_quantity+=$getpro->quantity;
+                                $total_cost+=$getpro->unit_cost;
+                                $total_price+=$unit_price_amount;
+                                $total_profit+=$profit;
+                                
+                                $this->excel->getActiveSheet()->SetCellValue('B' .$row, $this->erp->hrsd($getpro->date));
+                                $this->excel->getActiveSheet()->SetCellValue('C' .$row, $getpro->reference_no);
+                                $this->excel->getActiveSheet()->SetCellValue('D' .$row, $getpro->customer);
+                                $this->excel->getActiveSheet()->SetCellValue('E' .$row, $getpro->biller_name);
+                                $this->excel->getActiveSheet()->SetCellValue('F' .$row, $p_qty);
+                                $this->excel->getActiveSheet()->SetCellValue('G' .$row, $unit_price_amount);
+                                $this->excel->getActiveSheet()->SetCellValue('H' .$row, $unit_cost);
+                                $this->excel->getActiveSheet()->SetCellValue('I' .$row, $profit);
+                                $this->excel->getActiveSheet()->getStyle('E'.$row.':I'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                                if ($pdf) {
+                                    $styleArray = array('borders' => array('allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN)));
+                                    $this->excel->getDefaultStyle()->applyFromArray($styleArray);
+                                }
+                                
+                                $row++;                   
+                            }
+
+                            $this->excel->getActiveSheet()->mergeCells('A'.$row.':E'.$row);
+                            $this->excel->getActiveSheet()->SetCellValue('A' .$row, lang('total').">>");
+                            $this->excel->getActiveSheet()->getStyle('A' .$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                            $this->excel->getActiveSheet()->getStyle('A'. $row.':E'. $row)->getFont()->setBold(true);
+                            $this->excel->getActiveSheet()->SetCellValue('F' .$row, $total_quantity);
+                            $this->excel->getActiveSheet()->SetCellValue('G' .$row, $total_price);
+                            $this->excel->getActiveSheet()->SetCellValue('H' .$row, $total_cost);
+                            $this->excel->getActiveSheet()->SetCellValue('I' .$row, $total_profit);
+                            $this->excel->getActiveSheet()->getStyle('F'.$row. ':I'.$row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+                            
+                           $row++;  
+
+                            $total_quantity_by_warehouse += $total_quantity;
+                            $total_cost_by_warehouse += $total_cost;
+                            $total_price_by_warehouse += $total_price;
+                            $total_profit_by_warehouse += $total_profit;                            
+                            
+                        }
+                        
+                        
+                        $row++; 
+                        
+                    }
+                    
+                    $this->excel->getActiveSheet()->mergeCells('A'.$row.':E'.$row);
+                    $this->excel->getActiveSheet()->SetCellValue('A' .$row, lang('total').">>".$ware->warehouse);
+                    $this->excel->getActiveSheet()->getStyle('A' .$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                    $this->excel->getActiveSheet()->getStyle('A'. $row.':E'. $row)->getFont()->setBold(true);
+                    $this->excel->getActiveSheet()->SetCellValue('F' .$row, $total_quantity_by_warehouse);
+                    $this->excel->getActiveSheet()->SetCellValue('G' .$row, $total_price_by_warehouse);
+                    $this->excel->getActiveSheet()->SetCellValue('H' .$row, $total_cost_by_warehouse);
+                    $this->excel->getActiveSheet()->SetCellValue('I' .$row, $total_profit_by_warehouse);
+                    
+                    //$this->excel->getActiveSheet()->getStyle('I'.$row. ':K'.$row)->getBorders()->getTop()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+                    $gqty +=$total_quantity_by_warehouse;
+                    $gprice +=$total_cost_by_warehouse;
+                    $gcost +=$total_price_by_warehouse;
+                    $gprofit +=$total_profit_by_warehouse;
+
+                    $row++;
+                }
+
+                $this->excel->getActiveSheet()->mergeCells('A'.$row.':E'.$row);
+                $this->excel->getActiveSheet()->SetCellValue('A' .$row, lang('grand_total'));
+                $this->excel->getActiveSheet()->getStyle('A' .$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                $this->excel->getActiveSheet()->getStyle('A'. $row.':I'. $row)->getFont()->setBold(true);
+                $this->excel->getActiveSheet()->SetCellValue('F' .$row, $this->erp->formatDecimal($gqty));
+                $this->excel->getActiveSheet()->SetCellValue('G' .$row, $this->erp->formatMoney($gprice));
+                $this->excel->getActiveSheet()->SetCellValue('H' .$row, $this->erp->formatMoney($gcost));
+                $this->excel->getActiveSheet()->SetCellValue('I' .$row, $this->erp->formatMoney($gprofit));
+                $this->excel->getActiveSheet()->getStyle('F'.$row.':I'.$row)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+     
+
+                $this->excel->getActiveSheet()->getColumnDimension('A')->setWidth(20);
+                $this->excel->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+                $this->excel->getActiveSheet()->getColumnDimension('C')->setWidth(20);
+                $this->excel->getActiveSheet()->getColumnDimension('D')->setWidth(20);
+                $this->excel->getActiveSheet()->getColumnDimension('E')->setWidth(20);
+                $this->excel->getActiveSheet()->getColumnDimension('F')->setWidth(20);
+                $this->excel->getActiveSheet()->getColumnDimension('G')->setWidth(20);
+                $this->excel->getActiveSheet()->getColumnDimension('H')->setWidth(20);
+                $this->excel->getActiveSheet()->getColumnDimension('I')->setWidth(20);
+                
+                $filename = lang('Profit Product'). date('Y_m_d_H_i_s');
+                $this->excel->getDefaultStyle()->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                if ($pdf) {
+                    require_once(APPPATH . "third_party" . DIRECTORY_SEPARATOR . "MPDF" . DIRECTORY_SEPARATOR . "mpdf.php");
+                    $rendererName = PHPExcel_Settings::PDF_RENDERER_MPDF;
+                    $rendererLibrary = 'MPDF';
+                    $rendererLibraryPath = APPPATH . 'third_party' . DIRECTORY_SEPARATOR . $rendererLibrary;
+                    if (!PHPExcel_Settings::setPdfRenderer($rendererName, $rendererLibraryPath)) {
+                        die('Please set the $rendererName: ' . $rendererName . ' and $rendererLibraryPath: ' . $rendererLibraryPath . ' values' .
+                            PHP_EOL . ' as appropriate for your directory structure');
+                    }
+
+                    $this->excel->getActiveSheet()->getPageSetup()->setOrientation(PHPExcel_Worksheet_PageSetup::ORIENTATION_LANDSCAPE);
+                    $this->excel->getActiveSheet()->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_A4);
+                    $this->excel->getActiveSheet()->getPageSetup()->setFitToPage(true);
+                    $this->excel->getActiveSheet()->getPageSetup()->setFitToWidth(1);
+                    $this->excel->getActiveSheet()->getPageSetup()->setFitToHeight(1);
+
+                    //Margins:
+                    $this->excel->getActiveSheet()->getPageMargins()->setTop(0.25);
+                    $this->excel->getActiveSheet()->getPageMargins()->setRight(0.25);
+                    $this->excel->getActiveSheet()->getPageMargins()->setLeft(0.35);
+                    $this->excel->getActiveSheet()->getPageMargins()->setBottom(0.25);
+
+                    header('Content-Type: application/pdf');
+                    header('Content-Disposition: attachment;filename="' . $filename . '.pdf"');
+                    header('Cache-Control: max-age=0');
+
+                    $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'PDF');
+                    return $objWriter->save('php://output');
+                }
+                if ($excel) {
+                    ob_clean();
+                    header('Content-Type: application/vnd.ms-excel');
+                    header('Content-Disposition: attachment;filename="' . $filename . '.xls"');
+                    header('Cache-Control: max-age=0');
+                    
+        
+                    ob_clean();
+                    $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'Excel5');
+                    $objWriter->save('php://output');
+                    exit();
+                }
+        }
+    }
+
     function inventory_valuation_detail()
     {
         $this->erp->checkPermissions('inventory_valuation_detail', NULL, 'product_report');
@@ -18199,6 +18411,7 @@ function salesDetail_actions($start = NULL, $end = NULL){
 			$this->data['user'] = $post['user'];
 			$this->data['type'] = $post['type'];
 			$this->data['types'] = $post['types'];
+			$this->data['note'] = $post['note'];
 		}
         if($post['start_date'])
         {
@@ -18256,6 +18469,9 @@ function salesDetail_actions($start = NULL, $end = NULL){
 		if($this->data['types']){
 			$this->db->where("pos", $this->data['types']);
 		}
+		if($this->data['note']){
+			$this->db->where("pos", $this->data['note']);
+		}
 		
 		if($this->data['start_date'] && $this->data['end_date']){
 			$this->db->where("date >=", $this->erp->fld($this->data['start_date']));
@@ -18306,6 +18522,7 @@ function salesDetail_actions($start = NULL, $end = NULL){
 					erp_sales.customer,
 					erp_sales.customer_id,
 					erp_sales.created_by,
+					erp_sale_items.product_noted,
 					erp_sales.pos
 				FROM
 					`erp_sales`
@@ -18334,6 +18551,7 @@ function salesDetail_actions($start = NULL, $end = NULL){
 					erp_return_sales.customer,
 					erp_return_sales.customer_id,
 					erp_return_sales.created_by,
+					erp_return_items.product_noted,
 					0 as pos
 				FROM
 					erp_return_sales
@@ -18364,6 +18582,9 @@ function salesDetail_actions($start = NULL, $end = NULL){
 		
 		if($this->data['types']){
 			$sql3 .= " AND pos = {$this->data['types']}";
+		}
+		if($this->data['note']){
+			$sql3 .= " AND product_noted like '%{$this->data['note']}%'";
 		}
 		
 		if($this->data['start_date'] && $this->data['end_date']){

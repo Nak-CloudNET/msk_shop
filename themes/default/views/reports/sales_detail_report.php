@@ -32,6 +32,9 @@
 	if ($this->input->post('types')) {
 		$v .= "&types=" . $this->input->post('types');
 	}
+	if ($this->input->post('note')) {
+		$v .= "&note=" . $this->input->post('note');
+	}
 	if (isset($biller_id)) {
 		$v .= "&biller_id=" . $biller_id;
 	}
@@ -224,6 +227,14 @@
 								?>
 							</div>
 						</div>
+						<div class="col-sm-3">
+							<div class="form-group">
+                                <div class="form-group">
+                                    <label class="control-label" for="reference_no"><?= lang("note"); ?></label>
+                                    <?php echo form_input('note', (isset($_POST['note']) ? $_POST['note'] : ""), 'class="form-control tip" id="note"'); ?>
+                                </div>
+							</div>
+						</div>
 						
 						
                     </div>
@@ -237,7 +248,7 @@
                 <div class="clearfix"></div>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered table-condensed table-striped">
+                    <table class="table table-bordered table-striped">
 						<thead>
 							<tr class="info-head">
 								<th style="min-width:30px; width: 30px; text-align: center;">
@@ -298,6 +309,7 @@
 										 erp_sale_items.item_discount,
 										 erp_sale_items.subtotal,
 										 erp_sale_items.item_tax,
+										 erp_sale_items.product_noted,
 										 (CASE WHEN erp_products.unit = 0 THEN erp_products.unit ELSE erp_units.name END) as unit
 									FROM ";
 										
@@ -310,7 +322,7 @@
 											LEFT JOIN `erp_products` ON `erp_products`.`id` = `erp_sale_items`.`product_id`
 											LEFT JOIN `erp_units` ON `erp_units`.`id` = `erp_products`.`unit`
 											WHERE erp_sale_items.return_id={$sale->id} GROUP BY id")->result();
-							
+
 								
 							?>
 								
@@ -360,7 +372,8 @@
 									
 										
 									if($sale->type == 1){
-										foreach($sales_detail as $sale_detail){										
+										foreach($sales_detail as $sale_detail){
+										    //$this->erp->print_arrays($sale_detail);
 											$unit = $sale_detail->variant ? $sale_detail->variant : $sale_detail->unit;
 											$total_cost = $sale_detail->unit_cost * $sale_detail->quantity;											
 											$gross_margin = ($sale_detail->subtotal - $sale_detail->item_tax) - $total_cost;
@@ -377,9 +390,9 @@
 											//$amounts +=	$amount;
 										 
 								?>
-										<tr>			
+										<tr style="white-space: pre-wrap">
 											<td></td>
-											<td>(<?= $sale_detail->product_name; ?>) <?= $sale_detail->product_code ?></td>
+											<td>(<?= $sale_detail->product_name; ?>) <?= $sale_detail->product_code ?> </br><?= $sale_detail->product_noted ? '['. $sale_detail->product_noted .']' : ""?></td>
 											<td><?= $sale->biller ?></td>
 											<td class="center"><?= $warehouses_arr[$sale_detail->warehouse_id]; ?></td>
 											<td class="right"><?= $this->erp->formatMoney($sale_detail->unit_cost); ?></td>
