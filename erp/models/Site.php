@@ -1343,8 +1343,7 @@ class Site extends CI_Model
 			// $this->erp->print_arrays($this->get_setting()->project_code_prefix);
 			
             $ref_no = (!empty($prefix)) ? $prefix . '/' : '';
-
-			// if ($prefix == 'PRO' || $prefix == 'CUS' || $prefix == 'SUP' || $prefix == 'EMP') {
+			
 			if ($prefix == $this->get_setting()->project_code_prefix || $prefix == $this->get_setting()->customer_code_prefix || $prefix == $this->get_setting()->supplier_code_prefix || $prefix == $this->get_setting()->employee_code_prefix) {
 	            $ref_no .= sprintf("%05s", $ref->{$field});
 			} else {

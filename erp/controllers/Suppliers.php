@@ -667,9 +667,10 @@ class Suppliers extends MY_Controller
         if ($this->form_validation->run() == true) {
 			$supplier_id = $this->input->post('supplier_id');
 			$company = $this->site->getCompanyByID($supplier_id);
+			
 			$reference = $this->site->getReference('sd') ? $this->site->getReference('pp'): $this->input->post('reference_no');
-
-            if ($this->Owner || $this->Admin) {
+            
+			if ($this->Owner || $this->Admin) {
                 $date = $this->erp->fld(trim($this->input->post('date')));
             } else {
                 $date = date('Y-m-d H:i:s');
@@ -677,9 +678,11 @@ class Suppliers extends MY_Controller
 			$reference_no=$this->input->post('po_reference_no');
 			$po_paid=$this->input->post('po_paid');
 			$amount_dep=$this->input->post('amount');
+			
 			$po=array(
 				'paid' => $po_paid+$amount_dep,
 			);
+			
             $data = array(
                 'reference' => $reference,
                 'po_reference_no' => $this->input->post('po_reference_no'),
@@ -704,16 +707,15 @@ class Suppliers extends MY_Controller
 				'cc_year'      => $this->input->post('pcc_year'),
 				'cc_type'      => $this->input->post('pcc_type'),
 				'note'         => $this->input->post('note') ? $this->input->post('note') : $company->name,
-				'created_by'   => $company->id,
+				'created_by'   => $this->session->userdata('user_id'),
 				'bank_account' => $this->input->post('bank_account'),
 				'type' => 'received',
-				'biller_id'	   => $this->input->post('biller')
+				'biller_id'	   => $this->input->post('biller'),
+				'clear_supplier_deposit' => 0
 			);
 			//$this->erp->print_arrays($payment,$data);
             $cdata = array(
-                'deposit_amount' => ($company->deposit_amount+$this->input->post('amount'))
-				 
-				 
+                'deposit_amount' => ($company->deposit_amount+$this->input->post('amount')) 
             );
         } elseif ($this->input->post('add_deposit')) {
             $this->session->set_flashdata('error', validation_errors());
@@ -724,6 +726,7 @@ class Suppliers extends MY_Controller
             $this->session->set_flashdata('message', lang("deposit_added"));
             redirect($_SERVER['HTTP_REFERER']);
         } else {
+			
 			$this->data['po_reference'] = $this->companies_model->getPOReference();
 			$this->data['reference'] = $this->site->getReference('pp');
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));

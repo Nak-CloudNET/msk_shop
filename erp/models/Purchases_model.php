@@ -2405,11 +2405,22 @@ class Purchases_model extends CI_Model
 			}
 			
 			$this->site->syncPurchasePayments($data['purchase_id']);
+			
 			return true;
 		}
 
         return false;
     }
+	
+	
+	public function getDefaultSupplierDeposit(){
+		$this->db->select('*');
+		$this->db->from('erp_account_settings');
+		$q = $this->db->get();
+		if($q->num_rows()>0){
+			return $q->row();
+		}
+	}
 	
 	public function addPaymentMulti($data = array(), $id, $suppliers_id, $reference_no_o)
     {

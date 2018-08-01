@@ -1532,6 +1532,7 @@ class Accounts_model extends CI_Model
 	}
 	
 	public function getStatementBalaneSheetByDateBill($section = NULL,$from_date= NULL,$to_date = NULL,$biller_id = NULL){
+		$
 		$where_biller = '';
 		if($biller_id != NULL){
 			$where_biller = " AND erp_gl_trans.biller_id IN($biller_id) "; 

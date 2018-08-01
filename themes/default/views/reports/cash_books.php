@@ -160,8 +160,7 @@
 									$startAmount = $gl_tranStart->get()->row();
 									
 									$endAccountBalance = 0;
-									$getListGLTran = $this->db->select("*")->from('gl_trans')->where('account_code =', $val->accountcode);
-								
+									$getListGLTran = $this->db->select("SUM(erp_gl_trans.amount) as amounts,erp_gl_trans.*")->from('gl_trans')->where('account_code =', $val->accountcode);
 									$getListGLTran->where('date_format(tran_date,"%Y-%m-%d") >="'.$start_date2.'" AND date_format(tran_date,"%Y-%m-%d") <="'.$end_date2.'"');
 									
 									if($this->input->post('reference_no')){
@@ -173,13 +172,13 @@
 										$current_month = date('m');
 										$getListGLTran->where('MONTH(tran_date)', $current_month);
 									}
+									
 									if($biller_id != "" && $biller_id != NULL){
 										$getListGLTran->where('biller_id', $biller_id);
 									}
-                                    if ($this->input->post('reference_no') ) {
-                                        $getListGLTran->where('reference_no', $this->input->post('reference_no'));
-                                    }
+									$getListGLTran->group_by('erp_gl_trans.reference_no');
 									$gltran_list = $getListGLTran->get()->result();
+									
 									if($gltran_list) { ?>
 										<tr>
 											<td colspan="4">Account: <?=$val->accountcode . ' ' .$val->accountname?></td>
@@ -192,7 +191,7 @@
 											$endAccountBalance = $startAmount->startAmount;
 										foreach($gltran_list as $rw)
 										{
-											$endAccountBalance += $rw->amount; ?>
+											$endAccountBalance += $rw->amounts; ?>
 											<tr>
 												<td><div class="fix-text"><?=$rw->tran_id?></div></td>
 												<td><div class="fix-text"><?=$rw->reference_no?></div></td>
@@ -200,8 +199,8 @@
 												<td><div class="fix-text"><?=$rw->narrative?></div></td>
 												<td><div class="fix-text"><?=$rw->tran_date?></div></td>
 												<td><div class="fix-text"><?=$rw->tran_type?></div></td>
-												<td><div class="fix-text"><?=($rw->amount > 0 ? $this->erp->formatMoney($rw->amount) : '0.00')?></div></td>
-												<td><div class="fix-text"><?=($rw->amount < 1 ? $this->erp->formatMoney(abs($rw->amount)) : '0.00')?></div></td>
+												<td><div class="fix-text"><?=($rw->amounts > 0 ? $this->erp->formatMoney($rw->amounts) : '0.00')?></div></td>
+												<td><div class="fix-text"><?=($rw->amounts < 1 ? $this->erp->formatMoney(abs($rw->amounts)) : '0.00')?></div></td>
 											</tr>
 											<?php
 										} ?>

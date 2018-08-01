@@ -391,16 +391,12 @@ class Companies_model extends CI_Model
 			}
 	}
 	public function addSupplierDeposit($data, $cdata, $payment = array(),$po,$reference_no)
-    {
-		//$this->erp->print_arrays($data, $cdata, $payment);
+    {	
         if ($this->db->insert('deposits', $data)) {
 			$deposit_id = $this->db->insert_id();
-	
 			if ($this->site->getReference('pp') == $data['reference']) {
 				$this->site->updateReference('pp');
-			}else{}
-			
-			//$this->db->update('purchases_order', $po, array('reference_no' => $reference_no));
+			}
 			
 			$this->db->update('companies', $cdata, array('id' => $data['company_id']));
 			if($payment){
@@ -409,10 +405,15 @@ class Companies_model extends CI_Model
 					if ($this->site->getReference('pp') == $payment['reference_no']) {
 						$this->site->updateReference('pp');
 					}
+					
 					if ($payment['paid_by'] == 'gift_card') {
 						$gc = $this->site->getGiftCardByNO($payment['cc_no']);
 						$this->db->update('gift_cards', array('balance' => ($gc->balance - $payment['amount'])), array('card_no' => $payment['cc_no']));
 					}
+					if($payment['purchase_id']){
+						$this->site->syncPurchasePayments($payment['purchase_id']);
+					}
+					
 					return true;
 				}
 			}
@@ -420,6 +421,42 @@ class Companies_model extends CI_Model
         }
         return false;
     }
+	
+	public function clearSupplierDeposit($data, $cdata, $payment = array(),$reference_no)
+    {	
+		$payment['reference_no'] = $this->site->getReference('pp');
+        if ($this->db->insert('deposits', $data)) {
+			$deposit_id = $this->db->insert_id();
+			
+			$this->db->update('companies', $cdata, array('id' => $data['company_id']));
+			
+			if($payment){
+				$payment['purchase_deposit_id'] = $deposit_id;
+				$payment['reference_no'] = $this->site->getReference('pp');
+				if ($this->db->insert('payments', $payment)) {
+					if ($this->site->getReference('pp') == $payment['reference_no']) {
+						$this->site->updateReference('pp');
+					}
+					
+					if ($payment['paid_by'] == 'gift_card') {
+						$gc = $this->site->getGiftCardByNO($payment['cc_no']);
+						$this->db->update('gift_cards', array('balance' => ($gc->balance - $payment['amount'])), array('card_no' => $payment['cc_no']));
+					}
+					if($payment['purchase_id']){
+						$this->site->syncPurchasePayments($payment['purchase_id']);
+					}
+					
+					return true;
+				}
+			}
+            return true;
+        }
+        return false;
+    }
+	
+	
+	
+	
 	public function deleteSupplierDeposit($id){
 		$deposit = $this->getDepositByID($id);
 		

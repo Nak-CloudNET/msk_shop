@@ -184,3 +184,4 @@ $lang['total']								= "Total";
 $lang['received_item']						= "Received Purchase Items";
 $lang['returns']							= "Return";
 $lang["grand_total_x_<_paid_x"]				= "Grand Total Amount Is Less Than Paid Amount";
+$lang["clear_supplier_deposit"]				= "Clear Supplier Deposit";

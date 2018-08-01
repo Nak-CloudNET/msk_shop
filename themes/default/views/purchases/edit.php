@@ -1,5 +1,5 @@
 <?php
-	//$this->this->erp->print_arrays($journals);
+	//$this->erp->print_arrays($inv->type_of_po);
 ?>
 
 <style type="text/css">
@@ -404,6 +404,7 @@
 			
 		$("#poexpance").change(function()
 		{
+			//alert($(this).val());
 			if($(this).val()=='po')
 			{
 			  $(".pr_form").css("display","");
@@ -535,6 +536,7 @@
                             <div class="form-group">
                                 <?= lang("warehouse", "powarehouse"); ?>
                                 <?php
+								
                                 $wh[''] = '';
                                 foreach ($warehouses as $warehouse) {
                                     $wh[$warehouse->id] = $warehouse->code .'-'.$warehouse->name;
@@ -543,6 +545,8 @@
                                 ?>
                             </div>
                         </div>
+						
+						
                         <!--<div class="col-md-4">
                             <div class="form-group">
                                 <?= lang("status", "postatus"); ?>
@@ -552,6 +556,7 @@
                                 ?>
                             </div>
                         </div>-->
+						
 						<div class="customers_info">
                             <div class="col-md-4">
                                 <div class="form-group">
