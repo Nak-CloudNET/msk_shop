@@ -6100,7 +6100,7 @@ var lang = {unexpected_value: '<?=lang('unexpected_value');?>', select_above: '<
 				$('#pos-sale-form').submit();
 			}		
 				
-			
+
 			/*
             if (total_paid < grand_total) {
                 bootbox.confirm("<?= lang('paid_l_t_payable'); ?>", function (res) {

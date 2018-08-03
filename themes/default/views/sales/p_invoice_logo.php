@@ -283,10 +283,22 @@ $cols = 4;
 		
 	</table>
 	
-<button id="print" onclick="window.print()">
+<button id="print" onclick="doPrint()">
 		<img src="<?= base_url() . 'assets/uploads/printer.png'; ?>">
 </button>
 </center>
 <script type="text/javascript">
- window.onload = function() { window.print(); }
+    window.onload = function() {
+        window.print();
+        window.onmousemove = function() {
+            window.location.href ='<?=base_url()?>pos/sales';
+        }
+    }
+    function doPrint() {
+        window.print();
+        window.onmousemove = function() {
+            window.location.href ='<?=base_url()?>pos/sales';
+        }
+
+    }
 </script>
