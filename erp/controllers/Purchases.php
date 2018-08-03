@@ -16,6 +16,7 @@ class Purchases extends MY_Controller
         $this->lang->load('purchases', $this->Settings->language);
         $this->load->library('form_validation');
         $this->load->model('purchases_model');
+        $this->load->model('companies_model');
         $this->load->model('sales_model');
 		$this->load->model('sale_order_model');
         $this->load->model('products_model');
@@ -294,9 +295,9 @@ class Purchases extends MY_Controller
         $add_payment_link = anchor('purchases/add_payment/$1', '<i class="fa fa-money"></i> ' . lang('add_payment'), 'data-toggle="modal" data-target="#myModal"');
         $email_link = anchor('purchases/email/$1', '<i class="fa fa-envelope"></i> ' . lang('email_purchase'), 'data-toggle="modal" data-target="#myModal"');
 
-        $edit_opening_ap_link = anchor('purchases/edit_opening_ap/$1', '<i class="fa fa-edit"></i> ' . lang('edit_purchase'), 'data-toggle="modal" data-target="#myModal"');
+        //$edit_opening_ap_link = anchor('purchases/edit_opening_ap/$1', '<i class="fa fa-edit"></i> ' . lang('edit_purchase'), 'data-toggle="modal" data-target="#myModal"');
         $edit_link = anchor('purchases/edit/$1', '<i class="fa fa-edit"></i> ' . lang('edit_purchase'));
-
+		$clear_supplier_deposit = anchor('purchases/clear_supplier_deposit/$1', '<i class="fa fa-eraser"></i> ' . lang('clear_supplier_deposit'));
         $pdf_link = anchor('purchases/pdf/$1', '<i class="fa fa-file-pdf-o"></i> ' . lang('download_pdf'));
         $print_barcode = anchor('products/print_barcodes/?purchase=$1', '<i class="fa fa-print"></i> ' . lang('print_barcodes'));
 		$purchase_return = anchor('purchases/return_purchase/$1', '<i class="fa fa-angle-double-left"></i> ' . lang('return_purchase'));
@@ -313,7 +314,7 @@ class Purchases extends MY_Controller
             <li>' . $payments_link . '</li>'
 		   
            .(($this->Owner || $this->Admin) ? '<li class="edit">'.$edit_link.'</li>' : ($this->GP['purchases-edit'] ? '<li class="edit">'.$edit_link.'</li>' : '')).
-		   (($this->Owner || $this->Admin) ? '<li class="edit_opening_ap">'.$edit_opening_ap_link.'</li>' : ($this->GP['purchases-edit'] ? '<li class="edit_opening_ap">'.$edit_opening_ap_link.'</li>' : '')).
+			(($this->Owner || $this->Admin) ? '<li class="clear_supplier_deposit">'.$clear_supplier_deposit.'</li>' : ($this->GP['purchases-edit'] ? '<li class="clear_supplier_deposit">'.$clear_supplier_deposit.'</li>' : '')).
 
             '<li>' . $pdf_link . '</li>'
             .(($this->Owner || $this->Admin) ? '<li class="edit">'.$add_payment_link.'</li>' : ($this->GP['purchases-payments'] ? '<li class="edit">'.$add_payment_link.'</li>' : '')).
@@ -322,8 +323,10 @@ class Purchases extends MY_Controller
 		
 			<li>' . $purchase_return . '<li></ul>
     </div></div>';
+   // (($this->Owner || $this->Admin) ? '<li class="edit_opening_ap">'.$edit_opening_ap_link.'</li>' : ($this->GP['purchases-edit'] ? '<li class="edit_opening_ap">'.$edit_opening_ap_link.'</li>' : '')).
 
         $this->load->library('datatables');
+		
         if ($warehouse_id) {
             $this->datatables
                 ->select("purchases.id, purchases.date,purchases.request_ref,order_ref,purchases.reference_no, companies.name, purchases.status,erp_purchases.grand_total,COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
@@ -337,6 +340,7 @@ class Purchases extends MY_Controller
                 ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
                 ->where_in('purchases.warehouse_id', $warehouse_id);
         } else {
+			
 			$this->datatables
                 ->select("purchases.id,purchases.date,purchases.request_ref,purchases.order_ref,purchases.reference_no, companies.name, erp_purchases.status, erp_purchases.grand_total,
                     COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
@@ -393,7 +397,67 @@ class Purchases extends MY_Controller
         $this->datatables->add_column("Actions", $action, "purchases.id");
         echo $this->datatables->generate();
     }
+	public function clear_supplier_deposit($id){
 		
+		$purchase = $this->purchases_model->getPurchaseByID($id);
+		$purchase_payment = $this->purchases_model->getPaymentByPurchaseID($id);
+		
+		if($purchase->paid > $purchase->grand_total){
+			$supplier_deps = $purchase->grand_total - $purchase->paid;
+			$ref = floatval(substr($purchase_payment->reference_no, -1))+1;
+			$ref1 = substr($purchase_payment->reference_no,0,strlen($purchase_payment->reference_no)-1);
+			$ref2 = $ref1.$ref;
+			
+			$reference = $this->site->getReference('pp')?$this->site->getReference('pp'):$ref2;
+			
+			$account_setting = $this->purchases_model->getDefaultSupplierDeposit();
+			$company = $this->site->getCompanyByID($purchase->supplier_id);
+			$amount = abs($supplier_deps);
+			
+			$cdata = array(
+                'deposit_amount' => $company->deposit_amount+$amount
+            );
+			
+			$data = array(
+                'reference' => $reference,
+                'date' => date('Y-m-d H:i:s'),
+                'amount' => $amount,
+                'paid_by' => 'cash',
+                'note' => $purchase_payment->note,
+                'company_id' => $purchase->supplier_id,
+                'created_by' => $this->session->userdata('user_id'),
+				'bank_code' => $purchase_payment->bank_account,
+				'biller_id' => $purchase->biller_id,
+            );
+			
+			$payment = array(
+                'date' => date('Y-m-d H:i:s'),
+				'biller_id' => $purchase->biller_id,
+                'purchase_id' => $purchase->id,
+                'reference_no' => $reference,
+                'amount' =>  $supplier_deps,
+                'paid_by' => $purchase_payment->paid_by,
+                'cheque_no' => $purchase_payment->cheque_no,
+                'cc_no' => $purchase_payment->cc_no,
+                'cc_holder' => $purchase_payment->cc_holder,
+                'cc_month' => $purchase_payment->cc_month,
+                'cc_year' => $purchase_payment->cc_year,
+                'cc_type' => $purchase_payment->cc_type,
+                'note' => $purchase_payment->note,
+                'created_by' => $this->session->userdata('user_id'),
+				'bank_account' => $purchase_payment->bank_account,
+                'type' => 'received',
+				'clear_supplier_deposit' => 1
+            );
+			
+			
+			
+			if($this->companies_model->clearSupplierDeposit($data, $cdata,$payment,$ref2)) {
+				$this->session->set_flashdata('message', lang("supplier_deposit_cleared"));
+				redirect("purchases");
+			}
+		}
+	}
 	public function return_purchase($id = null)
     {
         $this->erp->checkPermissions('return_list',null,'purchases');
@@ -4990,9 +5054,10 @@ class Purchases extends MY_Controller
 				}
 
                 $paid = $this->site->getPaymentByPurchaseID($id);
+				
 				if ($paid->amount > $total) {
-                    $this->session->set_flashdata('error', lang("grand_total_x_<_paid_x"));
-                    redirect($_SERVER["HTTP_REFERER"]);
+                    //$this->session->set_flashdata('error', lang("grand_total_x_<_paid_x"));
+                    //redirect($_SERVER["HTTP_REFERER"]);
                 }
 
 				$this->purchases_model->updateJournal($reference_no, $data);
@@ -5050,6 +5115,7 @@ class Purchases extends MY_Controller
 				);
 					
 			}	
+		
 		
             if ($date) {
                 $data['date'] = $date;
@@ -5146,7 +5212,7 @@ class Purchases extends MY_Controller
                 $payment = array();
             }
 		  
-			//$this->erp->print_arrays($data, $products, $payment);
+			
         }
 		
         if ($this->form_validation->run() == true && $this->purchases_model->updatePurchase($id, $data, $products, $payment,$purid,$amount_o,$paid_o)) {
@@ -5213,7 +5279,7 @@ class Purchases extends MY_Controller
 			}else{
 				 $this->data['inv'] = $this->purchases_model->getPurchaseByID($id);
 				 $chart_acc_details = $this->purchases_model->getAllChartAccount();
-				
+				 
 				 foreach($chart_acc_details as $chart) {
 					$section_id = $chart->sectionid;
 				 }
@@ -6542,6 +6608,7 @@ class Purchases extends MY_Controller
 			}else{
 				$refer = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('pp',$biller_id);
 			}
+			
             $payment = array(
                 'date' => $date,
 				'biller_id' => $biller_id,
@@ -6559,6 +6626,7 @@ class Purchases extends MY_Controller
                 'created_by' => $this->session->userdata('user_id'),
 				'bank_account' => $this->input->post('bank_account'),
                 'type' => 'sent',
+				'clear_supplier_deposit'=>0
             );
 			
 			//$this->erp->print_arrays($payment); 
