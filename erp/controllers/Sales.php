@@ -6671,7 +6671,8 @@ class Sales extends MY_Controller
 					'attachment' =>$photo,
 					'bank_account' => $this->input->post('bank_account'),
 					'note' => $get_sale->customer,
-					'add_payment' => '1'
+					'add_payment' => '1',
+					'clear_customer_deposit' => 0
 				);
 			
 				$this->sales_model->addPaymentMulti($payment);
@@ -6773,7 +6774,8 @@ class Sales extends MY_Controller
 					'biller_id'	=> $biller_id,
 					'attachment' =>$photo,
 					'bank_account' => $this->input->post('bank_account'),
-					'add_payment' => '1'
+					'add_payment' => '1',
+					'clear_supplier_deposit' => 0
 				);
 				
 				if($payment['amount'] > 0 ){
@@ -7224,7 +7226,8 @@ class Sales extends MY_Controller
 					'biller_id'	=> $biller_id,
 					'attachment' =>$photo,
 					'bank_account' => $this->input->post('bank_account'),
-					'add_payment' => '1'
+					'add_payment' => '1',
+					'clear_customer_deposit' => 0
 				);
 				
 				if($payment['amount'] > 0 ){

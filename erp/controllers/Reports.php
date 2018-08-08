@@ -18530,6 +18530,35 @@ function salesDetail_actions($start = NULL, $end = NULL){
 				WHERE erp_sales.opening_ar = 0
 				GROUP BY
 					erp_sales.id,reference_no";
+		
+		$mysql1 = "SELECT
+					erp_sales.id,
+					1 as type,
+					erp_sales.date,
+					erp_sales.reference_no,
+					erp_sales.biller,
+					erp_sales.biller_id,
+					erp_sales.total,
+					erp_sales.total_discount,
+					erp_sales.order_discount,
+					erp_sales.order_tax,
+					erp_sales.product_tax,
+					erp_sales.shipping,
+					erp_sales.grand_total,
+					erp_sales.total_cost,
+					erp_sales.paid,
+					erp_sales.warehouse_id,
+					erp_sales.customer,
+					erp_sales.customer_id,
+					erp_sales.created_by,
+					erp_sale_items.product_noted,
+					erp_sales.pos
+				FROM
+					`erp_sales`
+				INNER JOIN erp_sale_items ON erp_sales.id = erp_sale_items.sale_id
+				WHERE erp_sales.opening_ar = 0
+				";
+					
 					
 		$sql2 = "SELECT
 					erp_return_sales.id,
@@ -18559,6 +18588,34 @@ function salesDetail_actions($start = NULL, $end = NULL){
 				GROUP BY
 					erp_return_sales.id,reference_no";	
 			
+		
+		$mysql2 = "SELECT
+					erp_return_sales.id,
+					2 as type,
+					erp_return_sales.date,
+					erp_return_sales.reference_no,
+					erp_return_sales.biller,
+					erp_return_sales.biller_id,
+					erp_return_sales.total,
+					erp_return_sales.total_discount,
+					erp_return_sales.order_discount,
+					erp_return_sales.product_tax,
+					erp_return_sales.order_tax,
+					erp_return_sales.shipping,
+					erp_return_sales.grand_total,
+					erp_return_sales.total_cost,
+					erp_return_sales.paid,
+					erp_return_sales.warehouse_id,
+					erp_return_sales.customer,
+					erp_return_sales.customer_id,
+					erp_return_sales.created_by,
+					erp_return_items.product_noted,
+					0 as pos
+				FROM
+					erp_return_sales
+				INNER JOIN erp_return_items ON erp_return_sales.id = erp_return_items.return_id
+				";	
+					
 		$sql3 = "";
 		
 		if($this->data['reference_no']){
@@ -18583,9 +18640,7 @@ function salesDetail_actions($start = NULL, $end = NULL){
 		if($this->data['types']){
 			$sql3 .= " AND pos = {$this->data['types']}";
 		}
-		if($this->data['note']){
-			$sql3 .= " AND product_noted like '%{$this->data['note']}%'";
-		}
+		
 		
 		if($this->data['start_date'] && $this->data['end_date']){
 			$start = $this->erp->fld($this->data['start_date']).' 00:00:00';
@@ -18594,7 +18649,14 @@ function salesDetail_actions($start = NULL, $end = NULL){
 			$sql3 .= " AND date <= '{$end}'";
 		}
 		
-		$sales = $this->db->query("SELECT * FROM ({$sql1} UNION {$sql2}) AS TEMP WHERE 1=1 {$sql3} ORDER BY id DESC")->result();
+		if($this->data['note']){
+			$sql3 .= " AND product_noted like '%{$this->data['note']}%'";
+			$sales = $this->db->query("SELECT * FROM ({$mysql1} UNION {$mysql2}) AS TEMP WHERE 1=1 {$sql3} ORDER BY id DESC")->result();
+		}else{
+			$sales = $this->db->query("SELECT * FROM ({$sql1} UNION {$sql2}) AS TEMP WHERE 1=1 {$sql3} ORDER BY id DESC")->result();
+		}
+		
+		
 		$this->pagination->initialize($config);
 		$this->data["pagination"] = $this->pagination->create_links();
 		$this->data['sales'] = $sales;
