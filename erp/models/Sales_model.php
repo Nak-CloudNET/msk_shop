@@ -1552,9 +1552,54 @@ class Sales_model extends CI_Model
         }
         return FALSE;
     }
-
+	
+	
+	public function getDepositBySaleId($id)
+	{
+		$this->db->select('*')
+				 ->from('erp_deposits')
+				 ->where('sale_id', $id);
+		$q = $this->db->get();
+		if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+	}
+	public function getPaymentDepositBySaleID($id){
+		$q = $this->db->get_where('payments', array('deposit_id' => $id,'clear_customer_deposit'=>1), 1);
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+	}
+	
+	public function getGlCustomerDeposit($reference_no){
+		$this->db->select('*');
+		$this->db->from('gl_trans');
+		$this->db->where('reference_no',$reference_no);
+		$this->db->where('tran_type','DEPOSITS');
+		$q = $this->db->get();
+		if($q->num_rows() > 0){
+			return $q->row();
+		}
+		return false;
+	}
+	
+	public function reset_customer_deposit($sale_id,$reference_no,$deposit_id){
+		
+        if ($this->db->delete('deposits', array('sale_id' => $sale_id))) {
+            if($this->db->delete('payments', array('deposit_id' => $deposit_id,'clear_customer_deposit'=>1,'reference_no'=>$reference_no))){
+				if($this->db->delete('gl_trans', array('tran_type' => 'DEPOSITS','reference_no'=>$reference_no))){
+					return true;
+				}
+			}
+		}
+		
+        return false;
+	}
+	
     public function updateSale($id, $data, $items = array(),$sale_data)
-    {	
+    {
 		//$this->erp->print_arrays($data);exit();
 		$deposit_customer_id = $data['deposit_customer_id'];
 		unset($data['deposit_customer_id']);
@@ -1571,11 +1616,69 @@ class Sales_model extends CI_Model
 
 		}
 
-		// If user edit and grand total is less than paid amount -> not allow update
+		// reset supplier deposit 
+		
+		$sale_deposit_rec = $this->getDepositBySaleId($id);
+		$sale_deposit_payment = $this->getPaymentDepositBySaleID($sale_deposit_rec->id);
+		$sale_deposit_payment_ref = $sale_deposit_payment->reference_no;
+		$gl_trans_customer_deposit = $this->getGlCustomerDeposit($sale_deposit_payment->reference_no);
+		
+		if(!empty($sale_deposit_rec) && !empty($sale_deposit_payment) && !empty($gl_trans_customer_deposit)){	
+			$this->reset_customer_deposit($id,$sale_deposit_payment->reference_no,$sale_deposit_rec->id);
+		}
+		
         if($data['grand_total'] < $data['paid']){
-            $this->session->set_flashdata('error', lang("grand_total_x_<_paid_x"));
-            redirect($_SERVER["HTTP_REFERER"]);
+            $customer_deps = $data['paid'] - $data['grand_total'];
+			$sale_payment = $this->getPaymentBySaleID($id);
+			$reference = $sale_deposit_payment_ref ? $sale_deposit_payment_ref : $this->site->getReference('sp');
+			$account_setting = $this->getDefaultCustomerDeposit();
+			$company = $this->site->getCompanyByID($data['biller_id']);
+			
+			$cdata = array(
+				'deposit_amount' => $company->deposit_amount+$customer_deps
+			);
+			
+			$customer_deposit = array(
+						'reference' => $reference,
+						'date' => date('Y-m-d H:i:s'),
+						'amount' => $customer_deps,
+						'paid_by' => 'cash',
+						'note' => $sale_payment->note,
+						'company_id' => $data['customer_id'],
+						'created_by' => $this->session->userdata('user_id'),
+						'bank_code' => $sale_payment->bank_account,
+						'biller_id' => $data['biller_id'],
+						'status' => 'deposit',
+						'sale_id' => $sale_payment->sale_id
+					);
+					
+					
+			$customer_payment_deposit = array(
+				'date' => date('Y-m-d H:i:s'),
+				'biller_id' => $data['biller_id'],
+				'reference_no' => $reference,
+				'amount' =>  $customer_deps,
+				'paid_by' => $sale_payment->paid_by,
+				'cheque_no' => $sale_payment->cheque_no,
+				'cc_no' => $sale_payment->cc_no,
+				'cc_holder' => $sale_payment->cc_holder,
+				'cc_month' => $sale_payment->cc_month,
+				'cc_year' => $sale_payment->cc_year,
+				'cc_type' => $sale_payment->cc_type,
+				'note' => $sale_payment->note,
+				'created_by' => $this->session->userdata('user_id'),
+				'bank_account' => $sale_payment->bank_account,
+				'type' => 'received',
+				'clear_customer_deposit' => 1
+			);
+			
+			$this->create_customer_deposit($customer_deposit, $cdata,$customer_payment_deposit);
+			
         }
+		
+		
+		
+		
         unset($data['paid']);
 
         if ($this->db->update('sales', $data, array('id' => $id))) {
@@ -1654,6 +1757,38 @@ class Sales_model extends CI_Model
         }
         return false;
     }
+	function create_customer_deposit($data, $cdata, $payment = array()){
+		if ($this->db->insert('deposits', $data)) {
+			$deposit_id = $this->db->insert_id();
+			$this->db->update('companies', $cdata, array('id' => $data['company_id']));
+			
+			if($payment){
+				$payment['deposit_id'] = $deposit_id;
+				if ($this->db->insert('payments', $payment)) {
+					if ($this->site->getReference('sp') == $payment['reference_no']) {
+						$this->site->updateReference('sp');
+					}
+					if ($payment['paid_by'] == 'gift_card') {
+						$gc = $this->site->getGiftCardByNO($payment['cc_no']);
+						$this->db->update('gift_cards', array('balance' => ($gc->balance - $payment['amount'])), array('card_no' => $payment['cc_no']));
+					}
+					
+					return true;
+				}
+			}
+			
+			return true;
+		}
+		return false;
+	}
+	public function getDefaultCustomerDeposit(){
+		$this->db->select('*');
+		$this->db->from('erp_account_settings');
+		$q = $this->db->get();
+		if($q->num_rows()>0){
+			return $q->row()->default_sale_deposit;
+		}
+	}
 	
 	public function updateSaleOrder($id, $data, $items = array())
     {
@@ -2761,6 +2896,9 @@ class Sales_model extends CI_Model
         return false;
     }
 	
+	public function clear_customer_deposit(){
+		
+	}
 	public function addPaymentMulti($data = array())
     {
         if ($this->db->insert('payments', $data)) {

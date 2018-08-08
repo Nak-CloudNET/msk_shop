@@ -4154,8 +4154,6 @@ class Sales extends MY_Controller
                 $payment = array();
             }
 			
-
-            //$this->erp->print_arrays($data, $products, $payment);
         }
 
         if ($this->form_validation->run() == true && $this->sales_model->updateSale($id, $data, $products,$sale_data, $payment, $loans)) {

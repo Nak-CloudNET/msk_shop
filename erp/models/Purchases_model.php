@@ -353,6 +353,20 @@ class Purchases_model extends CI_Model
 		return FALSE;
 	}
 	
+	public function ACC_PURCHASE_DEPOSIT(){
+		$this->db->select('gl_charts.accountcode');
+		$this->db->from("account_settings");
+		$this->db->join('gl_charts', 'gl_charts.accountcode = account_settings.default_purchase_deposit','INNER');
+		$this->db->join('gl_sections', 'gl_sections.sectionid = gl_charts.sectionid','INNER');
+		$q = $this->db->get();
+		if($q->num_rows() > 0){
+			$row = $q->row();
+			return $row->accountcode;
+		}
+		return FALSE;
+	}
+	
+	
 	public function ACC_Pur_Tax(){
 		$this->db->select('gl_charts.accountcode');
 		$this->db->from("account_settings");
@@ -2032,19 +2046,7 @@ class Purchases_model extends CI_Model
 			$ordd = $this->getOrderIDInPurchase($id);
 			$this->getOrderBYIDUpdateQty($ordd->order_id);	
 		}
-		/*
-		$cogs_inv = 0;
-		if($items) {
-			foreach($items as $item) {
-				$product = $this->getProductByID($item['product_id']);
-				if($product->quantity < 0) {
-					$cogs_inv += (($item['unit_cost'] - $product->cost) * $product->quantity);
-				}
-			}
-		}
 		
-		$data['cogs'] 			= $cogs_inv;
-		*/
 		
 		$data['updated_count'] 	= $opurchase->updated_count + 1;
 		
@@ -2053,7 +2055,8 @@ class Purchases_model extends CI_Model
 		
 		$result_o = 0;
         if ($this->db->update('purchases', $data, array('id' => $id)) && $this->db->delete('purchase_items', array('purchase_id' => $id))) {
-            $purchase_id = $id;
+			$purchase_id = $id;
+			
 			foreach($purid as $pu){
 				$this->db->delete("inventory_valuation_details",array("field_id"=>$pu['pur_id']));
 			}
@@ -2248,7 +2251,7 @@ class Purchases_model extends CI_Model
 	
 	public function getDepositByPurchaseid($id)
 	{
-		$this->db->select('amount')
+		$this->db->select('*')
 				 ->from('erp_deposits')
 				 ->where('po_id', $id);
 		$q = $this->db->get();
@@ -2311,6 +2314,15 @@ class Purchases_model extends CI_Model
             return $q->row();
         }
 
+        return FALSE;
+    }
+	
+	public function getPaymentDepositByPurchaseID($id)
+    {
+        $q = $this->db->get_where('payments', array('purchase_deposit_id' => $id,'clear_supplier_deposit'=>1), 1);
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
         return FALSE;
     }
 	
@@ -2412,6 +2424,18 @@ class Purchases_model extends CI_Model
         return false;
     }
 	
+	public function clear_supplier_deposit($data = array())
+    {
+		if ($this->db->insert('payments', $data)) {
+			$payment_id = $this->db->insert_id();
+			$this->site->syncPurchasePayments($data['purchase_id']);
+			return true;
+		}
+
+        return false;
+    }
+	
+	
 	
 	public function getDefaultSupplierDeposit(){
 		$this->db->select('*');
@@ -2421,6 +2445,7 @@ class Purchases_model extends CI_Model
 			return $q->row();
 		}
 	}
+	
 	
 	public function addPaymentMulti($data = array(), $id, $suppliers_id, $reference_no_o)
     {
@@ -2882,6 +2907,18 @@ class Purchases_model extends CI_Model
 		}
 		return false;
 	}
+	
+	public function getGlSupplierDeposit($reference_no){
+		$this->db->select('*');
+		$this->db->from('gl_trans');
+		$this->db->where('reference_no',$reference_no);
+		$this->db->where('tran_type','DEPOSITS');
+		$q = $this->db->get();
+		if($q->num_rows() > 0){
+			return $q->row();
+		}
+		return false;
+	}
 	public function getAllPurchasePayment($id){
 		$this->db->select("erp_purchases.*, erp_payments.reference_no as paymemt_no,erp_payments.amount,erp_payments.date as payment_date");
 		$this->db->from("erp_purchases");
@@ -2896,5 +2933,19 @@ class Purchases_model extends CI_Model
 		}
 		return false;
 	}
+	
+	public function reset_supplier_deposit($purchase_id,$reference_no,$deposit_id){
+		
+        if ($this->db->delete('deposits', array('po_id' => $purchase_id))) {
+            if($this->db->delete('payments', array('purchase_deposit_id' => $deposit_id,'clear_supplier_deposit'=>1,'reference_no'=>$reference_no))){
+				if($this->db->delete('gl_trans', array('tran_type' => 'DEPOSITS','reference_no'=>$reference_no))){
+					return true;
+				}
+			}
+		}
+		
+        return false;
+	}
+	
 	
 }

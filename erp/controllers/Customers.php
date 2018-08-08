@@ -674,10 +674,11 @@ class Customers extends MY_Controller
 				'cc_year' => $this->input->post('pcc_year'),
 				'cc_type' => $this->input->post('pcc_type'),
 				'note' => $this->input->post('note') ? $this->input->post('note') : $company->name,
-				'created_by' => $company->id,
+				'created_by' => $this->session->userdata('user_id'),
 				'type' => 'received',
 				'biller_id'	=> $this->input->post('biller'),
-				'bank_account' => $this->input->post('bank_account')
+				'bank_account' => $this->input->post('bank_account'),
+				'clear_customer_deposit' => 0
 			);
             $cdata = array(
                 'deposit_amount' => ($company->deposit_amount+$this->input->post('amount'))
