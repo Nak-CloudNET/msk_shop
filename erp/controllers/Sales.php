@@ -1754,7 +1754,7 @@ class Sales extends MY_Controller
 
     function p_invoice($id = NULL,$cash,$check,$title)
     {
-        //$this->erp->checkPermissions('index');
+        $this->erp->checkPermissions('index');
 
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
