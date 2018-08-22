@@ -4378,6 +4378,14 @@ class Sales_model extends CI_Model
 		return NULL;
 		
     }
+    public function getGroupPermissions()
+    {
+        $q = $this->db->get('permissions', 1);
+        if ($q->num_rows() > 0) {
+            return $q->row();
+        }
+        return FALSE;
+    }
 	
 	
 }

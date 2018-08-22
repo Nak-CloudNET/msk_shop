@@ -299,6 +299,12 @@
 														for="customer_balance"
 														class="padding05"><?= lang('customer_balance') ?></label>
 											</div>
+											<div class="col-md-4">
+													<input type="checkbox" value="1" id="print" class="checkbox"
+														   name="print" <?php echo $p->{'print'} ? "checked" : ''; ?>><label
+														for="print"
+														class="padding05"><?= lang('print') ?></label>
+											</div>
 									   </div>
                                     </td>
                                 </tr>

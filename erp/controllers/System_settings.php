@@ -1364,7 +1364,8 @@ class system_settings extends MY_Controller
 				
 				'report_convert' => $this->input->post('report_convert'),
 				'report_list_using_stock' => $this->input->post('report_list_using_stock'),
-				'report_transfers' => $this->input->post('report_transfers')
+				'report_transfers' => $this->input->post('report_transfers'),
+				'print' => $this->input->post('print')
             );
 			
             if (POS) {

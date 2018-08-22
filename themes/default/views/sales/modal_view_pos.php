@@ -358,6 +358,8 @@ $statusCheck = $this->input->post("htest");
                             </a>
                         </div>
 						-->
+
+                    <?php if($p->print == 1){?>
                     <div class="btn-group" id ="title_link_invoice">
                         <a href="<?= site_url('sales/p_invoice/' . $inv->id) ?>" target="_blank" id ="temp_link_invoice" class="tip btn btn-primary" title="<?= lang('print_invoice') ?>">
                             <i class="fa fa-print"></i>
@@ -411,6 +413,8 @@ $statusCheck = $this->input->post("htest");
                             <span class="hidden-sm hidden-xs"><?= lang('invoice_delivery') ?></span>
                         </a>
                     </div>
+                    <?php } ?>
+                    
                     <?php if ($inv->attachment) { ?>
                         <div class="btn-group">
                             <a href="<?= site_url('welcome/download/' . $inv->attachment) ?>" class="tip btn btn-primary" title="<?= lang('attachment') ?>">

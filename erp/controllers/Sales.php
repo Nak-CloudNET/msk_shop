@@ -12244,6 +12244,8 @@ class Sales extends MY_Controller
         $this->data['updated_by'] = $inv->updated_by ? $this->site->getUser($inv->updated_by) : NULL;
         $this->data['warehouse'] = $this->site->getWarehouseByID($inv->warehouse_id);
         $this->data['inv'] = $inv;
+        //$this->erp->print_arrays();
+        $this->data['p'] = $this->sales_model->getGroupPermissions();
         $return = $this->sales_model->getReturnBySID($id);
         $this->data['return_sale'] = $return;
         $this->data['rows'] = $this->sales_model->getAllInvoiceItems($id);

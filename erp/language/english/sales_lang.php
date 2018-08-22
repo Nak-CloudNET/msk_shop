@@ -279,6 +279,7 @@ $lang['back']								= "Back";
 $lang['rks_invoice']						= "RKS Invoice";
 $lang['list_customer_balance']				= "List Customer Balance";
 $lang['customer_balance']					= "Customer Balance";
+$lang['print']					            = "Print";
 $lang['combine_to_pay']						= "Combine To Pay";
 $lang['return_sales']						= "Return Sales";
 $lang['invoice_delivery']					= "Invoice Delivery";
