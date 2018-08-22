@@ -1552,52 +1552,7 @@ class Sales_model extends CI_Model
         }
         return FALSE;
     }
-	
-	
-	public function getDepositBySaleId($id)
-	{
-		$this->db->select('*')
-				 ->from('erp_deposits')
-				 ->where('sale_id', $id);
-		$q = $this->db->get();
-		if ($q->num_rows() > 0) {
-            return $q->row();
-        }
-        return FALSE;
-	}
-	public function getPaymentDepositBySaleID($id){
-		$q = $this->db->get_where('payments', array('deposit_id' => $id,'clear_customer_deposit'=>1), 1);
-        if ($q->num_rows() > 0) {
-            return $q->row();
-        }
-        return FALSE;
-	}
-	
-	public function getGlCustomerDeposit($reference_no){
-		$this->db->select('*');
-		$this->db->from('gl_trans');
-		$this->db->where('reference_no',$reference_no);
-		$this->db->where('tran_type','DEPOSITS');
-		$q = $this->db->get();
-		if($q->num_rows() > 0){
-			return $q->row();
-		}
-		return false;
-	}
-	
-	public function reset_customer_deposit($sale_id,$reference_no,$deposit_id){
-		
-        if ($this->db->delete('deposits', array('sale_id' => $sale_id))) {
-            if($this->db->delete('payments', array('deposit_id' => $deposit_id,'clear_customer_deposit'=>1,'reference_no'=>$reference_no))){
-				if($this->db->delete('gl_trans', array('tran_type' => 'DEPOSITS','reference_no'=>$reference_no))){
-					return true;
-				}
-			}
-		}
-		
-        return false;
-	}
-	
+
     public function updateSale($id, $data, $items = array(),$sale_data)
     {
 		//$this->erp->print_arrays($data);exit();
@@ -1616,69 +1571,11 @@ class Sales_model extends CI_Model
 
 		}
 
-		// reset supplier deposit 
-		
-		$sale_deposit_rec = $this->getDepositBySaleId($id);
-		$sale_deposit_payment = $this->getPaymentDepositBySaleID($sale_deposit_rec->id);
-		$sale_deposit_payment_ref = $sale_deposit_payment->reference_no;
-		$gl_trans_customer_deposit = $this->getGlCustomerDeposit($sale_deposit_payment->reference_no);
-		
-		if(!empty($sale_deposit_rec) && !empty($sale_deposit_payment) && !empty($gl_trans_customer_deposit)){	
-			$this->reset_customer_deposit($id,$sale_deposit_payment->reference_no,$sale_deposit_rec->id);
-		}
-		
+		// If user edit and grand total is less than paid amount -> not allow update
         if($data['grand_total'] < $data['paid']){
-            $customer_deps = $data['paid'] - $data['grand_total'];
-			$sale_payment = $this->getPaymentBySaleID($id);
-			$reference = $sale_deposit_payment_ref ? $sale_deposit_payment_ref : $this->site->getReference('sp');
-			$account_setting = $this->getDefaultCustomerDeposit();
-			$company = $this->site->getCompanyByID($data['biller_id']);
-			
-			$cdata = array(
-				'deposit_amount' => $company->deposit_amount+$customer_deps
-			);
-			
-			$customer_deposit = array(
-						'reference' => $reference,
-						'date' => date('Y-m-d H:i:s'),
-						'amount' => $customer_deps,
-						'paid_by' => 'cash',
-						'note' => $sale_payment->note,
-						'company_id' => $data['customer_id'],
-						'created_by' => $this->session->userdata('user_id'),
-						'bank_code' => $sale_payment->bank_account,
-						'biller_id' => $data['biller_id'],
-						'status' => 'deposit',
-						'sale_id' => $sale_payment->sale_id
-					);
-					
-					
-			$customer_payment_deposit = array(
-				'date' => date('Y-m-d H:i:s'),
-				'biller_id' => $data['biller_id'],
-				'reference_no' => $reference,
-				'amount' =>  $customer_deps,
-				'paid_by' => $sale_payment->paid_by,
-				'cheque_no' => $sale_payment->cheque_no,
-				'cc_no' => $sale_payment->cc_no,
-				'cc_holder' => $sale_payment->cc_holder,
-				'cc_month' => $sale_payment->cc_month,
-				'cc_year' => $sale_payment->cc_year,
-				'cc_type' => $sale_payment->cc_type,
-				'note' => $sale_payment->note,
-				'created_by' => $this->session->userdata('user_id'),
-				'bank_account' => $sale_payment->bank_account,
-				'type' => 'received',
-				'clear_customer_deposit' => 1
-			);
-			
-			$this->create_customer_deposit($customer_deposit, $cdata,$customer_payment_deposit);
-			
+            $this->session->set_flashdata('error', lang("grand_total_x_<_paid_x"));
+            redirect($_SERVER["HTTP_REFERER"]);
         }
-		
-		
-		
-		
         unset($data['paid']);
 
         if ($this->db->update('sales', $data, array('id' => $id))) {
@@ -1691,13 +1588,13 @@ class Sales_model extends CI_Model
 				$purchase_item = $this->site->getPurchaseItemBySaleItem($sItem->id, 'SALE');
 				if($purchase_item){
 					$this->db->delete('purchase_items', array('id' => $purchase_item->id));
-					
+
 				}
 			}
 
 			//======================== End ========================//
 			$this->db->delete('sale_items', array('sale_id' => $id));
-			
+
 			$i = 0;
             foreach ($items as $item) {
 				$product = $this->site->getProductByID($item['product_id']);
@@ -1705,21 +1602,21 @@ class Sales_model extends CI_Model
                 $item['sale_id'] = $id;
                 $this->db->insert('sale_items', $item);
                 $sale_item_id = $this->db->insert_id();
-				
+
 				$items[$i]['transaction_type'] 	= 'SALE';
 				$items[$i]['transaction_id'] 	= $sale_item_id;
 				$items[$i]['status'] 			= ($data['sale_status'] == 'completed'?'received':'');
-				
+
                 if ($data['sale_status'] == 'completed' && $this->site->getProductByID($item['product_id'])) {
                     $item_costs = $this->site->item_costing($item);
                     foreach ($item_costs as $item_cost) {
                         $item_cost['sale_item_id'] = $sale_item_id;
                         $item_cost['sale_id'] = $id;
-						
+
 						unset($item_cost['transaction_type']);
 						unset($item_cost['transaction_id']);
 						unset($item_cost['status']);
-						
+
                         if(! isset($item_cost['pi_overselling'])) {
                             $this->db->insert('costing', $item_cost);
                         }
@@ -1737,16 +1634,16 @@ class Sales_model extends CI_Model
 				}else{
 					$this->db->update('sales', array('payment_status' => 'paid'), array('id' => $id));
 				}
-				
+
 				$this->site->syncSalePayments($sale_id);
 
-				
+
 			}
 			//if($data['payment_status'] == 'paid')
 
 			$this->site->syncSalePayments($id);
 			$cost = $this->site->costing($items);
-			
+
             if ($data['sale_status'] == 'completed') {
                 $this->site->syncPurchaseItems($cost);
             }
@@ -1757,55 +1654,23 @@ class Sales_model extends CI_Model
         }
         return false;
     }
-	function create_customer_deposit($data, $cdata, $payment = array()){
-		if ($this->db->insert('deposits', $data)) {
-			$deposit_id = $this->db->insert_id();
-			$this->db->update('companies', $cdata, array('id' => $data['company_id']));
-			
-			if($payment){
-				$payment['deposit_id'] = $deposit_id;
-				if ($this->db->insert('payments', $payment)) {
-					if ($this->site->getReference('sp') == $payment['reference_no']) {
-						$this->site->updateReference('sp');
-					}
-					if ($payment['paid_by'] == 'gift_card') {
-						$gc = $this->site->getGiftCardByNO($payment['cc_no']);
-						$this->db->update('gift_cards', array('balance' => ($gc->balance - $payment['amount'])), array('card_no' => $payment['cc_no']));
-					}
-					
-					return true;
-				}
-			}
-			
-			return true;
-		}
-		return false;
-	}
-	public function getDefaultCustomerDeposit(){
-		$this->db->select('*');
-		$this->db->from('erp_account_settings');
-		$q = $this->db->get();
-		if($q->num_rows()>0){
-			return $q->row()->default_sale_deposit;
-		}
-	}
-	
+
 	public function updateSaleOrder($id, $data, $items = array())
     {
-		
+
         if ($this->db->update('erp_sale_order', $data, array('id' => $id)) && $this->db->delete('erp_sale_order_items', array('sale_order_id' => $id))) {
             foreach ($items as $item) {
                 $item['sale_order_id'] = $id;
                 $this->db->insert('erp_sale_order_items', $item);
-				
+
             }
-			
+
             return true;
         }
         return false;
     }
-	
-	
+
+
     public function deleteSale($id)
     {
         $sale_items = $this->resetSaleActions($id);
@@ -1820,7 +1685,7 @@ class Sales_model extends CI_Model
         }
         return FALSE;
     }
-	
+
 	public function deleteSuspend($id)
     {
         if ($this->db->delete('suspended_bills', array('id' => $id)) &&
@@ -1895,7 +1760,7 @@ class Sales_model extends CI_Model
                         if($combo_item->type == 'standard') {
                             $cpi = $this->site->getPurchasedItem(array('product_id' => $combo_item->id, 'warehouse_id' => $pi->warehouse_id, 'option_id' => NULL));
                             $bln = $pi->quantity_balance + ($qty*$combo_item->qty);
-							
+
 							$combo_data = array(
 								'product_id' => $combo_items->id,
 								'product_code' => $combo_items->code,
@@ -1910,13 +1775,13 @@ class Sales_model extends CI_Model
 								'quantity_balance' => abs($qty*$combo_item->qty)
 							);
 							$this->db->insert('purchase_items', $combo_data);
-							
+
                             // $this->db->update('purchase_items', array('quantity_balance' => $bln), array('id' => $combo_item->id));
                         }
                     }
                 } else {
                     $bln = $pi->quantity_balance + $qty;
-					
+
 					$new_arr_data = array(
 						'product_id' => $pr->product_id,
 						'product_code' => $pr->product_code,
@@ -1931,29 +1796,29 @@ class Sales_model extends CI_Model
 						'quantity_balance' => abs($qty)
 					);
 					$this->db->insert('purchase_items', $new_arr_data);
-					
+
                     //$this->db->update('purchase_items', array('quantity_balance' => $bln), array('id' => $id));
                 }
             }
         } else {
             if ($sale_item = $this->getSaleItemByID($sale_item_id)) {
-				
+
                 $option_id = isset($sale_item->option_id) && !empty($sale_item->option_id) ? $sale_item->option_id : NULL;
 				if($option_id){
 					$clause = array('product_id' => $sale_item->product_id, 'warehouse_id' => $sale_item->warehouse_id, 'option_id' => $option_id);
 				}else{
 					$clause = array('product_id' => $sale_item->product_id, 'warehouse_id' => $sale_item->warehouse_id);
 				}
-				
+
                 if ($pi = $this->site->getPurchasedItem($clause)) {
                     $quantity_balance = $pi->quantity_balance+$qty;
-					
+
 					$qty_balance = abs($qty);
 					if($option_id){
 						$option = $this->site->getProductVariantOptionIDPID($option_id, $sale_item->product_id);
 						$qty_balance = $qty_balance * $option->qty_unit;
 					}
-					
+
 					$new_arr_data = array(
 						'product_id' => $sale_item->product_id,
 						'product_code' => $sale_item->product_code,
@@ -1968,16 +1833,16 @@ class Sales_model extends CI_Model
 						'quantity_balance' => $qty_balance
 					);
 					$this->db->insert('purchase_items', $new_arr_data);
-					
+
                     // $this->db->update('purchase_items', array('quantity_balance' => $quantity_balance), array('id' => $pi->id));
                 } else {
-					
+
 					$qty_balance = $qty;
 					if($option_id){
 						$option = $this->site->getProductVariantOptionIDPID($option_id, $sale_item->product_id);
 						$qty_balance = $qty_balance * $option->qty_unit;
 					}
-					
+
                     $clause['purchase_id'] = NULL;
                     $clause['transfer_id'] = NULL;
                     $clause['quantity'] = 0;
@@ -1991,13 +1856,13 @@ class Sales_model extends CI_Model
                 if ($pr->type == 'standard') {
                     if ($pi = $this->site->getPurchasedItem($clause)) {
                         $quantity_balance = $pi->quantity_balance+$qty;
-                        
+
 						$qty_balance = abs($qty);
 						if($option_id){
 							$option = $this->site->getProductVariantOptionIDPID($option_id, $product_id);
 							$qty_balance = $qty_balance * $option->qty_unit;
 						}
-						
+
 						$new_arr_data = array(
 							'product_id' => $pr->id,
 							'product_code' => $pr->code,
@@ -2013,16 +1878,16 @@ class Sales_model extends CI_Model
 						);
 						//$this->erp->print_arrays($new_arr_data);
 						$this->db->insert('purchase_items', $new_arr_data);
-						
+
 						// $this->db->update('purchase_items', array('quantity_balance' => $quantity_balance), array('id' => $pi->id));
                     } else {
-						
+
 						$qty_balance = $qty;
 						if($option_id){
 							$option = $this->site->getProductVariantOptionIDPID($option_id, $product_id);
 							$qty_balance = $qty_balance * $option->qty_unit;
 						}
-						
+
                         $clause['purchase_id'] = NULL;
                         $clause['transfer_id'] = NULL;
                         $clause['quantity'] = 0;
@@ -2036,7 +1901,7 @@ class Sales_model extends CI_Model
                         if($combo_item->type == 'standard') {
                             if ($pi = $this->site->getPurchasedItem($clause)) {
                                 $quantity_balance = $pi->quantity_balance+($qty*$combo_item->qty);
-								
+
 								$combo_data = array(
 									'product_id' => $combo_items->id,
 									'product_code' => $combo_items->code,
@@ -2051,7 +1916,7 @@ class Sales_model extends CI_Model
 									'quantity_balance' => abs($qty*$combo_item->qty)
 								);
 								$this->db->insert('purchase_items', $combo_data);
-								
+
                                 // $this->db->update('purchase_items', array('quantity_balance' => $quantity_balance), $clause);
                             } else {
                                 $clause['transfer_id'] = NULL;
@@ -2066,7 +1931,7 @@ class Sales_model extends CI_Model
             }
         }
     }
-	
+
 	public function getTotalCostProducts($product_id, $quantity){
 		$this->db->select("SUM(cost* CASE WHEN $quantity <> 0 THEN $quantity ELSE 0 END ) AS total_cost ");
 		$q = $this->db->get_where('products', array('id' => $product_id));
@@ -2087,7 +1952,7 @@ class Sales_model extends CI_Model
 
     public function returnSale($data = array(), $items = array(), $payment = array())
     {
-		
+
         foreach ($items as $item) {
             if ($item['product_type'] == 'combo') {
                 $combo_items = $this->site->getProductComboItems($item['product_id'], $item['warehouse_id']);
@@ -2110,7 +1975,7 @@ class Sales_model extends CI_Model
                     $this->updatePurchaseItem(NULL,($item['quantity']*$combo_item->qty), NULL, $combo_item->id, $item['warehouse_id']);
                 }
             } else {
-				
+
                 if ($costings = $this->getCostingLines($item['sale_item_id'], $item['product_id'])) {
                     $quantity = $item['quantity'];
                     foreach ($costings as $cost) {
@@ -2147,19 +2012,19 @@ class Sales_model extends CI_Model
         }
 		//$this->erp->print_arrays($items);
         $sale_items = $this->site->getAllSaleItems($data['sale_id']);
-		
+
 		foreach($items as $g){
 			$totalCostProducts = $this->getTotalCostProducts($g['product_id'], $g['quantity']);
 			$data['total_cost'] += $totalCostProducts->total_cost;
 		}
-		
+
         if ($this->db->insert('return_sales', $data)) {
             $return_id = $this->db->insert_id();
-			
+
 			if ($this->site->getReference('re',$data['biller_id']) == $data['reference_no']) {
 				$this->site->updateReference('re',$data['biller_id']);
 			}
-            
+
 			$total_amount_to_dep = 0;
             foreach ($items as $item) {
                 $item['return_id'] = $return_id;
@@ -2267,7 +2132,7 @@ class Sales_model extends CI_Model
 					$payment_term = 0;
 				}
 				*/
-				
+
             }
 			$this->calculateSaleTotalsReturn($data['sale_id'], $return_id, $data['surcharge']);
             $this->site->syncQuantity(NULL, NULL, $sale_items);
@@ -2275,7 +2140,7 @@ class Sales_model extends CI_Model
         }
         return false;
     }
-	
+
 	/* Return Sales */
 	public function returnSales($data = array(), $items = array(), $payment = array())
     {
@@ -2338,7 +2203,7 @@ class Sales_model extends CI_Model
         }
 		//$this->erp->print_arrays($items);
         //$sale_items = $this->site->getAllSaleItems($data['sale_id']);
-		
+
 		foreach($items as $g){
 			$totalCostProducts = $this->getTotalCostProducts($g['product_id'], $g['quantity']);
 			$data['total_cost'] += $totalCostProducts->total_cost;
@@ -2354,15 +2219,15 @@ class Sales_model extends CI_Model
             $sale_id = 0;
             foreach ($items as $item) {
                 $sale_id = $item['sale_id'];
-                
+
 				$sale_items = $this->site->getAllSaleItems($sale_id);
                 $item['return_id'] = $return_id;
                 $this->db->insert('return_items', $item);
-				
+
 				if($sale_id){
 					$this->calculateSaleTotalsReturn($sale_id, $return_id, $data['surcharge']);
 				}
-                
+
                 if ($item['sale_item_id']) {
                     if ($sale_item = $this->getSaleItemByID($item['sale_item_id'])) {
                         if ($sale_item->quantity == $item['quantity']) {
@@ -2421,25 +2286,25 @@ class Sales_model extends CI_Model
         }
         return FALSE;
     }
-    
+
     public function getSaleItemByRefPID($sale_ref, $product_id)
     {
         $this->db->select('sale_items.id AS sale_item_id, sales.id AS sale_id');
         $this->db->join('sale_items', 'sale_items.sale_id = sales.id', 'inner');
         $q = $this->db->get_where('sales', array('sales.reference_no' => $sale_ref, 'sale_items.product_id' => $product_id));
-        
+
         if ($q->num_rows() > 0) {
             return $q->row();
         }
         return FALSE;
     }
-    
+
     public function getSaleItemByRefPIDReturn($sale_ref, $product_id)
     {
         $this->db->select('sale_items.quantity');
         $this->db->join('sale_items', 'sale_items.sale_id = sales.id', 'inner');
         $q = $this->db->get_where('sales', array('sales.reference_no' => $sale_ref, 'sale_items.product_id' => $product_id));
-        
+
         if ($q->num_rows() > 0) {
             return $q->row();
         }
@@ -2454,7 +2319,7 @@ class Sales_model extends CI_Model
         }
         return FALSE;
     }
-	
+
 	public function getSaleItemByProductID($product_id)
     {
         $q = $this->db->get_where('sale_items', array('product_id' => $product_id), 1);
@@ -2463,7 +2328,7 @@ class Sales_model extends CI_Model
         }
         return FALSE;
     }
-	
+
 	function getSalesById($id){
 		$q = $this->db->get_where('sales', array('id' => $id), 1);
         if ($q->num_rows() > 0) {
@@ -2546,7 +2411,7 @@ class Sales_model extends CI_Model
 					'surcharge' => $surcharge
 				);
 			}
-            
+
             if ($this->db->update('sales', $data, array('id' => $id))) {
                 $this->erp->update_award_points($data['grand_total'], $sale->customer_id, $sale->created_by);
                 return true;
@@ -2557,7 +2422,7 @@ class Sales_model extends CI_Model
         }
         return FALSE;
     }
-	
+
 	public function calculateSaleTotalsReturn($id, $return_id, $surcharge = NULL,$payment_status =NULL)
     {
         $sale = $this->getInvoiceByID($id);
@@ -2633,7 +2498,7 @@ class Sales_model extends CI_Model
 					//'surcharge' => $surcharge
 				);
 			}
-            
+
             if ($this->db->update('sales', $data, array('id' => $id))) {
                 $this->erp->update_award_points($data['grand_total'], $sale->customer_id, $sale->created_by);
                 return true;
@@ -2672,7 +2537,7 @@ class Sales_model extends CI_Model
         }
         return false;
     }
-	
+
 	public function completedDeliveries($id)
     {
         if ($this->db->update('deliveries', array('delivery_status' => 'completed'), array('id' => $id))) {
@@ -2705,14 +2570,14 @@ class Sales_model extends CI_Model
 			->join('companies', 'companies.id = deliveries.customer_id', 'inner')
             ->group_by('deliveries.id')
 			->order_by('deliveries.id', 'desc');
-		$this->db->where('erp_deliveries.id',$id);  
+		$this->db->where('erp_deliveries.id',$id);
 		$q = $this->db->get();
 		if($q->num_rows()>0){
 			return $q->row();
 		}
 		return false;
     }
-	
+
 	public function getSaleDeliveryByID($delivery_id=Null)
     {
         $this->db->select('erp_deliveries.*,erp_sales.shipping,erp_sales.order_discount,erp_sales.order_tax,erp_sales.customer_id as customer_id,erp_sales.payment_status,erp_sales.saleman_by,companies.name as company_name,erp_sales.order_tax_id,erp_sales.sale_status,erp_sales.biller_id,erp_sales.delivery_by,erp_sales.payment_term,erp_sales.order_discount_id');
@@ -2726,7 +2591,7 @@ class Sales_model extends CI_Model
 		}
 		return false;
     }
-	
+
 	public function getSaleOrderDeliveryByID($delivery_id=Null)
     {
         $this->db->select('erp_deliveries.*,erp_sale_order.shipping,erp_sale_order.order_discount,erp_sale_order.order_tax,erp_sale_order.customer_id as customer_id,erp_sale_order.payment_status,erp_sale_order.saleman_by,companies.name as company_name,erp_sale_order.order_tax_id,erp_sale_order.sale_status,erp_sale_order.biller_id,erp_sale_order.delivery_by,erp_sale_order.payment_term,erp_sale_order.order_discount_id');
@@ -2740,8 +2605,8 @@ class Sales_model extends CI_Model
 		}
 		return false;
     }
-	
-	
+
+
 	public function getDelivery($id= Null){
 		$this->db->select('deliveries.*, companies.name, companies.company');
 		$this->db->join('companies', 'deliveries.customer_id = companies.id', 'inner');
@@ -2751,7 +2616,7 @@ class Sales_model extends CI_Model
 		}
 		return false;
 	}
-	
+
 	public function getDeliveryBySaleID($sale_id)
     {
         $q = $this->db->get_where('deliveries', array('sale_id' => $sale_id), 1);
@@ -2760,7 +2625,7 @@ class Sales_model extends CI_Model
         }
         return FALSE;
     }
-	
+
 	public function updateStock($products=null){
 		$status=false;
 		foreach($products as $del){
@@ -2774,7 +2639,7 @@ class Sales_model extends CI_Model
 		}
 		return false;
 	}
-	
+
 	public function deleteDelivery($id)
     {
 		$stock_info = $this->resetDeliveryActions($id);
@@ -2784,7 +2649,7 @@ class Sales_model extends CI_Model
         }
         return FALSE;
     }
-	
+
 	public function deleteDelivery_($id)
     {
 		$stock_info = $this->resetDeliveryActions($id);
@@ -2806,8 +2671,8 @@ class Sales_model extends CI_Model
             return $data;
         }
     }
-	
-	
+
+
     public function getPaymentByID($id)
     {
         $q = $this->db->get_where('payments', array('id' => $id), 1);
@@ -2842,7 +2707,7 @@ class Sales_model extends CI_Model
 		}
 		return FALSE;
 	}
-	
+
 	public function getPurchaseByID($id)
 	{
 		$this->db->select('purchases.date,purchases.reference_no,purchases.paid,purchases.biller_id,purchases.supplier_id,payments.paid_by')
@@ -2877,7 +2742,7 @@ class Sales_model extends CI_Model
 			if ($this->site->getReference('sp',$data['biller_id']) == $data['reference_no']) {
 				$this->site->updateReference('sp',$data['biller_id']);
 			}
-            
+
             $this->site->syncSalePayments($data['sale_id']);
             if ($data['paid_by'] == 'gift_card') {
                 $gc = $this->site->getGiftCardbyNO($data['cc_no']);
@@ -2895,10 +2760,7 @@ class Sales_model extends CI_Model
         }
         return false;
     }
-	
-	public function clear_customer_deposit(){
-		
-	}
+
 	public function addPaymentMulti($data = array())
     {
         if ($this->db->insert('payments', $data)) {

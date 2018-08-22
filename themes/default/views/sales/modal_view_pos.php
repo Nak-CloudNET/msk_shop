@@ -18,7 +18,7 @@ $statusCheck = $this->input->post("htest");
             <button type="button" class="btn btn-xs btn-default pull-right" style="margin-right:15px;" onclick="window.print();">
                 <i class="fa fa-print"></i> <?= lang('print'); ?>
             </button>
-            <?php } ?>
+            <?php }?>
             <div class="text-center">
                 <h1><?=lang('receipt')?></h1>
             </div>

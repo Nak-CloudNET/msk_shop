@@ -1,6 +1,6 @@
 <link href="<?= $assets ?>styles/helpers/bootstrap.min.css" rel="stylesheet"/>
 
- <style>    
+ <style>
 @media print{
         #print{
             display:none;
@@ -22,7 +22,7 @@
 	<table class="table-responsive" width="1050px" border="0" cellspacing="0" style="margin:auto;">
 		<!--<tr>
 			<td rowspan="6">
-			
+
 				<?php if ($logo) { ?>
 					<div class="text-center" style="margin-bottom:20px;">
 						<img src="<?= base_url() . 'assets/uploads/logos/' . $biller->logo; ?>"
@@ -83,14 +83,14 @@
 				<div style="font-family:'Arial'; font-size:20px;"><?= lang("Invoice"); ?></div>
 			</td>
 			<td align="center" style="padding-top:5px;">
-				
+
 			</td>
 			<td align="center" style="padding-top:5px;">
-				
+
 			</td>
-			
+
 		</tr>
-		
+
 		<tr>
 			<td colspan="5" width="65%" align="center" style="padding-top:5px;">
 				<table width="100%">
@@ -157,7 +157,7 @@
 						}else{
 							$product_unit = $row->unit;
 						}
-						
+
 						$product_name_setting;
 						if($pos->show_product_code == 0) {
 							$product_name_setting = $row->product_name . ($row->variant ? ' (' . $row->variant . ')' : '');
@@ -214,7 +214,7 @@
 						?>
 						<?php if ($inv->grand_total != $inv->total) { ?>
 							<tr>
-								
+
 								<td colspan="<?= $tcol; ?>"
 									style="text-align:right; padding-right:10px;"><?= lang(" Total"); ?>
 								</td>
@@ -230,36 +230,36 @@
 							</tr>
 						<?php } ?>
 						<?php if ($inv->order_discount != 0) {
-							
+
 							echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px; font-weight:bold;">' . lang(" Order_Discount") . '</td><td style="text-align:right; padding-right:10px; font-weight:bold; padding-top:20px;">' . $this->erp->formatMoney($inv->order_discount) . '</td></tr>';
-							
+
 						}
 						?>
 						<?php if ($Settings->tax2 && $inv->order_tax != 0) {
-							
+
 							echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px; font-weight:bold;">' . lang(number_format($vattin->rate)."% <br/> VAT(".number_format($vattin->rate)."%)") . '</td><td style="text-align:right; padding-right:10px; font-weight:bold; padding-top:20px;">' . $this->erp->formatMoney($inv->order_tax) . '</td></tr>';
 						}
 						?>
 						<?php if ($inv->shipping != 0) {
-							
+
 							echo '<tr><td colspan="' . $col . '" style="text-align:right; padding-right:10px;;">' . lang("Shipping") . ' (' . $default_currency->code . ')</td><td style="text-align:right; padding-right:10px;">' . $this->erp->formatMoney($inv->shipping) . '</td></tr>';
 					}
 						?>
 						<tr>
 <?php
-$cols = 3; 
+$cols = 3;
 if($row->item_discount>0){
 $cols = 4;
 }
 ?>
 						<td colspan="<?=$cols?>"  rowspan="<?=$ro?>"><div style="font-size:14px;margin-top:20px;"><?=$biller->invoice_footer;?></div></td>
-							<td 
+							<td
 								style="text-align:right; font-weight:bold;"><?= lang(" Grand_Total"); ?>
 							</td>
 							<td style="text-align:right; padding-right:10px; font-weight:bold; padding-top:20px;"><?= $this->erp->formatMoney($inv->grand_total); ?></td>
 						</tr>
 						<tr>
-							<td 
+							<td
 								style="text-align:right; font-weight:bold;"><?= lang(" Paid"); ?>
 							</td>
 							<td style="text-align:right; font-weight:bold; padding-top:20px;"><?= $this->erp->formatMoney($inv->paid); ?></td>
@@ -279,9 +279,9 @@ $cols = 4;
 		<!--
 		<tr>
 			<td style="width:30%" class="text-center">
-			
+
 			</td>
-			
+
 			<td style="width:30%">
 				<?php if($cash==1){?>
 				<input type="checkbox" name="cash" id="cash" checked="checked">&nbsp &nbsp
@@ -300,10 +300,10 @@ $cols = 4;
 				<label for="check">CHQN _____________________</label>
 				<?php } ?>
 				<p>* Payment is made once cheque is cleared only.</p>
-				
+
 			</td>
-			
-			
+
+
 		</tr>
 		-->
 		<tr>
@@ -321,8 +321,8 @@ $cols = 4;
                                                         <span><?=$inv->saleman?></span>
 							<hr style="border:dotted 1px; width:160px; vertical-align:bottom !important; " />
 							<b style="font-size:10px;text-align:center;margin-left:3px;"><?= lang('​ហត្ថលេខា និង ឈ្មោះ​អ្នក​លក់​  <br/> Seller`s Signature & Name'); ?></b>
-						</td> 
-					</tr>						
+						</td>
+					</tr>
 				</table>
 			</td>
 		</tr>
@@ -330,7 +330,7 @@ $cols = 4;
 <!--
 			<td colspan="5" style="font-size:12px; font-family:'Khmer OS'; padding-top:20px;">
 				<b><u>សម្គាល់​</u> : </b> ច្បាប់​​ដើម​សម្រាប់​អ្នក​ទិញ​ ច្បាប់​ចម្លង​សម្រាប់​អ្ន​ក​លក់​។ <br/>
-				<b><u>Note</u> : </b> Original invoice for customer copy invoice for seller. 
+				<b><u>Note</u> : </b> Original invoice for customer copy invoice for seller.
 			</td>
 -->
 		</tr>
@@ -341,12 +341,14 @@ $cols = 4;
 </center>
 <script type="text/javascript">
  window.onload = function() {
+
      window.print();
      window.onmousemove = function() {
          window.location.href ='<?=base_url()?>pos/sales';
      }
  }
  function doPrint() {
+     alert('hello');
      window.print();
      window.onmousemove = function() {
          window.location.href ='<?=base_url()?>pos/sales';
