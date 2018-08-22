@@ -424,7 +424,6 @@
                             class="controls"> <?php echo form_submit('submit_report', $this->lang->line("submit"), 'class="btn btn-primary"'); ?> </div>
                     </div>
                     <?php echo form_close(); ?>
-
                 </div>
                 <div class="clearfix"></div>
                 <div class="table-responsive">
