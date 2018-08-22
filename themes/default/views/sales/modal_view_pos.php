@@ -14,9 +14,11 @@ $statusCheck = $this->input->post("htest");
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                 <i class="fa fa-2x">&times;</i>
             </button>
+            <?php if($p->print == 1){?>
             <button type="button" class="btn btn-xs btn-default pull-right" style="margin-right:15px;" onclick="window.print();">
                 <i class="fa fa-print"></i> <?= lang('print'); ?>
             </button>
+            <?php } ?>
             <div class="text-center">
                 <h1><?=lang('receipt')?></h1>
             </div>
@@ -414,7 +416,7 @@ $statusCheck = $this->input->post("htest");
                         </a>
                     </div>
                     <?php } ?>
-                    
+
                     <?php if ($inv->attachment) { ?>
                         <div class="btn-group">
                             <a href="<?= site_url('welcome/download/' . $inv->attachment) ?>" class="tip btn btn-primary" title="<?= lang('attachment') ?>">
