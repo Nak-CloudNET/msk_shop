@@ -330,7 +330,9 @@ class Purchases extends MY_Controller
 		
         if ($warehouse_id) {
             $this->datatables
-                ->select("purchases.id, purchases.date,purchases.request_ref,order_ref,purchases.reference_no, companies.name, purchases.status,erp_purchases.grand_total,COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
+                ->select("purchases.id, purchases.date,purchases.request_ref,order_ref,
+                purchases.reference_no, companies.name, purchases.status,erp_purchases.grand_total,
+                COALESCE((SELECT SUM(erp_return_purchases.grand_total,purchases.created_by) 
                         FROM erp_return_purchases 
                         WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases, 
                         return_purchases.paid, 
@@ -343,15 +345,18 @@ class Purchases extends MY_Controller
         } else {
 			
 			$this->datatables
-                ->select("purchases.id,purchases.date,purchases.request_ref,purchases.order_ref,purchases.reference_no, companies.name, erp_purchases.status, erp_purchases.grand_total,
+                ->select('purchases.id,purchases.date,purchases.request_ref,
+                purchases.order_ref,purchases.reference_no, companies.name, 
+                erp_purchases.status,erp_purchases.grand_total,
                     COALESCE((SELECT SUM(erp_return_purchases.grand_total) 
                         FROM erp_return_purchases 
                         WHERE erp_return_purchases.purchase_id = erp_purchases.id), 0) as return_purchases,  
                         (erp_purchases.paid-COALESCE(erp_return_purchases.paid,0)) as paid,  
-                        IF(erp_purchases.status='Returned',(0.00),(erp_purchases.grand_total-erp_purchases.paid)) as balance, 
-                        payment_status, opening_ap")
+                        IF(erp_purchases.status="Returned",(0.00),(erp_purchases.grand_total-erp_purchases.paid)) as balance, 
+                        payment_status,  opening_ap, CONCAT(UCASE(LEFT(`erp_users`.`first_name`, 1)),LCASE(SUBSTRING(`erp_users`.`first_name`, 2)),\' \',UCASE(LEFT(`erp_users`.`last_name`,1)),LCASE(SUBSTRING(`erp_users`.`last_name`, 2))) as u_name')
                 ->from('purchases')
                 ->join('return_purchases', 'return_purchases.purchase_id = purchases.id', 'LEFT')
+                ->join('users', ' purchases.created_by =users.id', 'LEFT')
 				->join('companies', 'companies.id = purchases.supplier_id', 'inner');
 			if(isset($_REQUEST['d'])){
 				$date_c = date('Y-m-d', strtotime('+3 months'));
@@ -371,7 +376,6 @@ class Purchases extends MY_Controller
         } elseif ($this->Customer) {
             $this->datatables->where('customer_id', $this->session->userdata('user_id'));
         }
-		
 		if ($user_query) {
 			$this->datatables->where('purchases.created_by', $user_query);
 		}
