@@ -1,6 +1,6 @@
 
 <?php
-	
+
 	$v = "";
 	if ($this->input->post('reference_no')) {
 		$v .= "&reference_no=" . $this->input->post('reference_no');
@@ -56,7 +56,7 @@
 
 	$(document).ready(function(){
         $('body').on('click', '#combine_pay', function(e) {
-			
+
             e.preventDefault();
             if($('.checkbox').is(":checked") === false){
                 alert('Please select at least one.');
@@ -70,7 +70,7 @@
                     }
                 }
             });
-			
+
 
             var i = 0;
                 var items = [];
@@ -80,7 +80,7 @@
                     items[i] = {'id': $(this).val()};
                     i++;
                 });
-                
+
                 $.ajax({
                     type: 'get',
                     url: site.base_url+'account/checkreferPur',
@@ -151,7 +151,10 @@
             "aoColumns": [{
                 "bSortable": false,
                 "mRender": checkbox
-            }, {"mRender": fld}, null, null,null,null, {"mRender": row_status},{"mRender": currencyFormat}, {"mRender": currencyFormat},{"mRender": currencyFormat}, {"mRender": currencyFormat},{"mRender": row_status}, {"bVisible": false}, {"bSortable": false}],
+            }, {"mRender": fld}, null, null,null,null, {"mRender": row_status},
+                {"mRender": currencyFormat}, {"mRender": currencyFormat},
+                {"mRender": currencyFormat}, {"mRender": currencyFormat},
+                {"mRender": row_status}, {"bVisible": false} , null,  {"bSortable": false}],
             "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
                 var total = 0, paid = 0, balance = 0, return_purchases = 0;
                 for (var i = 0; i < aaData.length; i++) {
@@ -159,15 +162,15 @@
                     return_purchases += parseFloat(aaData[aiDisplay[i]][8]);
                     paid += parseFloat(aaData[aiDisplay[i]][9]);
                     balance += parseFloat(aaData[aiDisplay[i]][10]);
-					
+
                 }
-				
+
                 var nCells = nRow.getElementsByTagName('th');
                 nCells[7].innerHTML = currencyFormat(total);
                 nCells[8].innerHTML = currencyFormat(return_purchases);
                 nCells[9].innerHTML = currencyFormat(paid);
                 nCells[10].innerHTML = currencyFormat(balance);
-				
+
             }
         }).fnSetFilteringDelay().dtFilter([
             {column_number: 1, filter_default_label: "[<?=lang('date');?> (yyyy-mm-dd)]", filter_type: "text", data: []},
@@ -177,7 +180,8 @@
 			{column_number: 5, filter_default_label: "[<?=lang('supplier');?>]", filter_type: "text", data: []},
 			{column_number: 6, filter_default_label: "[<?=lang('status');?>]", filter_type: "text", data: []},
 			{column_number: 11, filter_default_label: "[<?=lang('payment_status');?>]", filter_type: "text", data: []},
-            
+            {column_number: 13, filter_default_label: "[<?=lang('Create_by');?>]", filter_type: "text", data: []},
+
         ], "footer");
 
         <?php if ($this->session->userdata('remove_pols')) {?>
@@ -284,7 +288,7 @@
 								</a>
 							</li>
 						<?php } ?>
-							
+
 						<?php if ($Owner || $Admin || $GP['purchases-export']) {?>
 							<li>
 								<a href="#" id="excel" data-action="export_excel">
@@ -407,7 +411,7 @@
                                 <?php echo form_input('end_date', (isset($_POST['end_date']) ? $_POST['end_date'] : ""), 'class="form-control datetime" id="end_date"'); ?>
                             </div>
                         </div>
-						
+
 						<div class="col-sm-4">
                            <div class="form-group">
                                 <?= lang("note", "note"); ?>
@@ -444,6 +448,7 @@
                             <th><?php echo $this->lang->line("balance"); ?></th>
                             <th><?php echo $this->lang->line("payment_status"); ?></th>
                             <th></th>
+                            <th>Created By</th>
                             <th style="width:100px;"><?php echo $this->lang->line("actions"); ?></th>
                         </tr>
                         </thead>
@@ -467,6 +472,7 @@
                             <th><?php echo $this->lang->line("returns"); ?></th>
                             <th><?php echo $this->lang->line("paid"); ?></th>
                             <th><?php echo $this->lang->line("balance"); ?></th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th style="width:100px; text-align: center;"><?php echo $this->lang->line("actions"); ?></th>
