@@ -370,7 +370,6 @@ class Purchases extends MY_Controller
 				->where('purchases.payment_term <>', 0);
 			}
         }
-		
 		if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
             $this->datatables->where('purchases.created_by', $this->session->userdata('user_id'));
         } elseif ($this->Customer) {
