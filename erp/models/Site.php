@@ -383,6 +383,9 @@ class Site extends CI_Model
         }
         return FALSE;
 	}
+	
+	
+	
 	public function getSuppliersByID($id) {
         $q = $this->db->get_where('companies', array('id' => $id), 1);
         if ($q->num_rows() > 0) {

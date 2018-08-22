@@ -440,6 +440,7 @@ class Pos_model extends CI_Model
 					'grand_total' => abs($data['grand_total']),
 					'created_by' => $this->session->userdata('user_id'),
 				);
+
 				if ($this->db->insert('return_sales', $returns)) {
 					$return_id = $this->db->insert_id();
 					if ($this->site->getReference('re') == $returns['reference_no']) {
@@ -469,7 +470,6 @@ class Pos_model extends CI_Model
 							}
 						}
 					}
-					//$this->sales_model->calculateSaleTotals($sale_id, $return_id);
 
 					if (!empty($payments)) {
 						foreach($payments as $payment_return){
@@ -539,6 +539,7 @@ class Pos_model extends CI_Model
 					}
 					$this->site->syncQuantity(NULL, NULL, $sale_items);
 				}
+
 			}else{
 				
 				if ($data['sale_status'] == 'completed') {
@@ -619,7 +620,7 @@ class Pos_model extends CI_Model
 								}
 							}
 						}
-						
+
 						$this->site->syncSalePaymentsCur($sale_id);
 					}
 				}
@@ -1845,4 +1846,62 @@ class Pos_model extends CI_Model
         }
         return FALSE;
 	}
+	
+	public function clear_customer_deposit($data = array())
+    {
+		if ($this->db->insert('payments', $data)) {
+			$payment_id = $this->db->insert_id();
+			$this->site->syncSalePayments($data['sale_id']);
+			return true;
+		}
+
+        return false;
+    }
+	
+	public function getSaleById($id){
+		$this->db->select('*');
+		$this->db->from('erp_sales');
+		$this->db->where('erp_sales.id',$id);
+		$q = $this->db->get();
+		if($q->num_rows() > 0){
+			return $q->row();
+		}
+		return false;
+	}
+	
+	public function getTranNo(){
+		/*
+		$this->db->query("UPDATE erp_order_ref
+							SET tr = tr + 1
+							WHERE
+							DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')");
+		*/
+		/*
+		$q = $this->db->query("SELECT tr FROM erp_order_ref
+									WHERE DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')");
+									*/
+
+		$this->db->select('(COALESCE (MAX(tran_no), 0) + 1) AS tr');
+		$q = $this->db->get('gl_trans');
+		if($q->num_rows() > 0){
+			$row = $q->row();
+			return $row->tr;
+		}
+		return FALSE;
+	}
+	
+	public function ACC_SALE_DEPOSIT(){
+		$this->db->select('gl_charts.accountcode');
+		$this->db->from("account_settings");
+		$this->db->join('gl_charts', 'gl_charts.accountcode = account_settings.default_sale_deposit','INNER');
+		$this->db->join('gl_sections', 'gl_sections.sectionid = gl_charts.sectionid','INNER');
+		$q = $this->db->get();
+		if($q->num_rows() > 0){
+			$row = $q->row();
+			return $row->accountcode;
+		}
+		return FALSE;
+	}
+	
+	
 }

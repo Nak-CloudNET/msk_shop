@@ -823,6 +823,7 @@ class Accounts_model extends CI_Model
 	
 	public function addJournal($rows){
 		foreach($rows as $data){
+			
 			$gl_chart = $this->getChartAccountByID($data['account_code']);
 			if($gl_chart > 0){
 				$data['sectionid'] = $gl_chart->sectionid;
@@ -833,6 +834,7 @@ class Accounts_model extends CI_Model
 				$tran_id = $this->db->insert_id();
 				
 				if($gl_chart->bank == 1){
+					
 					$payment = array(
 						'date' => $data['tran_date'],
 						'transaction_id' => $data['tran_no'],
@@ -845,6 +847,9 @@ class Accounts_model extends CI_Model
 					);
 
 					$this->db->insert('payments', $payment);
+					
+					$this->site->updateReference('jr',$data['biller_id']);
+					
 				}
 				
 				if ($this->site->getReference('jr',$data['biller_id']) == $data['reference_no']) {
@@ -852,7 +857,9 @@ class Accounts_model extends CI_Model
 				}
 				
 			}
+			
 		}
+		
 	}
 	
 	public function getJournalByTranNoTranID($tran_id, $tran_no){

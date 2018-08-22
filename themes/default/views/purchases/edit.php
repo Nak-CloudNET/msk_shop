@@ -1,5 +1,5 @@
 <?php
-	//$this->erp->print_arrays($inv->type_of_po);
+	//$this->erp->print_arrays($journals);
 ?>
 
 <style type="text/css">
@@ -508,6 +508,7 @@
                                 <?= lang("reference_no", "poref"); ?>
                                 <?php echo form_input('reference_no', (isset($_POST['reference_no']) ? $_POST['reference_no'] : $purchase->reference_no), 'class="form-control input-tip" id="poref" required="required" readonly'); ?>
 								<input type="hidden"  name="quote_id"  id="quote_id" value="<?= $quote_id?$quote_id:'' ?>" />
+								<input type="hidden"  name="purchase_id"  id="purchase_id" value="<?= $id?$id:'' ?>" />
 							</div>
                         </div>
 						<?php if ($Owner || $Admin || !$this->session->userdata('biller_id')) { ?>

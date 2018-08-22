@@ -422,28 +422,21 @@ class Companies_model extends CI_Model
         return false;
     }
 	
-	public function clearSupplierDeposit($data, $cdata, $payment = array(),$reference_no)
+	public function create_supplier_deposit($data, $cdata, $payment = array(),$reference_no)
     {	
-		$payment['reference_no'] = $this->site->getReference('pp');
         if ($this->db->insert('deposits', $data)) {
 			$deposit_id = $this->db->insert_id();
-			
 			$this->db->update('companies', $cdata, array('id' => $data['company_id']));
 			
 			if($payment){
 				$payment['purchase_deposit_id'] = $deposit_id;
-				$payment['reference_no'] = $this->site->getReference('pp');
 				if ($this->db->insert('payments', $payment)) {
 					if ($this->site->getReference('pp') == $payment['reference_no']) {
 						$this->site->updateReference('pp');
 					}
-					
 					if ($payment['paid_by'] == 'gift_card') {
 						$gc = $this->site->getGiftCardByNO($payment['cc_no']);
 						$this->db->update('gift_cards', array('balance' => ($gc->balance - $payment['amount'])), array('card_no' => $payment['cc_no']));
-					}
-					if($payment['purchase_id']){
-						$this->site->syncPurchasePayments($payment['purchase_id']);
 					}
 					
 					return true;

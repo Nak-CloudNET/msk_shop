@@ -20,6 +20,7 @@ class Pos extends MY_Controller
         $this->load->model('products_model');
 		$this->load->model('settings_model');
 		$this->load->model('sales_model');
+		$this->load->model('accounts_model');
 		
         $this->load->helper('text');
         $this->pos_settings = $this->pos_model->getSetting();
@@ -148,6 +149,7 @@ class Pos extends MY_Controller
         $detail_link = anchor('pos/view/$1', '<i class="fa fa-file-text-o"></i> ' . lang('view_receipt'));
         $payments_link = anchor('sales/payments/$1', '<i class="fa fa-money"></i> ' . lang('view_payments'), 'data-toggle="modal" data-target="#myModal"');
         $add_payment_link = anchor('pos/add_payment/$1', '<i class="fa fa-money"></i> ' . lang('add_payment'), 'data-toggle="modal" data-target="#myModal"');
+		$clear_customer_deposit = anchor('pos/clear_customer_deposit/$1', '<i class="fa fa-eraser"></i> ' . lang('clear_customer_deposit'),'data-toggle="modal" data-target="#myModal"');
         $add_delivery_link = anchor('sales/add_delivery/$1', '<i class="fa fa-truck"></i> ' . lang('add_delivery'), 'data-toggle="modal" data-target="#myModal"');
         $email_link = anchor('#', '<i class="fa fa-envelope"></i> ' . lang('email_sale'), 'class="email_receipt" data-id="$1" data-email-address="$2"');
         $edit_link = anchor('sales/edit/$1/pos', '<i class="fa fa-edit"></i> ' . lang('edit_sale'), 'class="sledit"');
@@ -161,8 +163,8 @@ class Pos extends MY_Controller
             . lang('actions') . ' <span class="caret"></span></button>
         <ul class="dropdown-menu pull-right" role="menu">
             <li>' . $detail_link . '</li>
+            <li>' . $clear_customer_deposit . '</li>
             <li>' . $payments_link . '</li>'
-            
 			.(($this->Owner || $this->Admin) ? '<li class="edit">'.$add_payment_link.'</li>' : ($this->GP['sales-payments'] ? '<li class="edit">'.$add_payment_link.'</li>' : '')).
 			
             '<li>' . $add_delivery_link . '</li>'
@@ -622,10 +624,13 @@ class Pos extends MY_Controller
 			 $amount = 0;
 			
             if (!$suspend) {
+
                 $p = isset($_POST['amount']) ? sizeof($_POST['amount']) : 0;
 				$p_cur = isset($_POST['other_cur_paid']) ? sizeof($_POST['other_cur_paid']) : 0;
                 for ($r = 0; $r < $p; $r++) {
+
                     if (isset($_POST['amount'][$r]) && !empty($_POST['amount'][$r]) && isset($_POST['paid_by'][$r]) && !empty($_POST['paid_by'][$r])) {
+
                         $amount = $this->erp->formatDecimal($_POST['balance_amount'][$r] > 0 ? $_POST['amount'][$r] - $_POST['balance_amount'][$r] : $_POST['amount'][$r]);
 						
 						if(strpos($_POST['amount'][$r], '-') !== false){
@@ -672,14 +677,17 @@ class Pos extends MY_Controller
 								'pos_paid_other' => $_POST['other_cur_paid']
 							);
 						}
-						
+
                         $pp[] = $amount;
                         $this->site->updateReference('sp');
+
+
                     }
                 }
-				
+
 				if(isset($p_cur) && empty($_POST['amount'][0])){
-					$p_amount = 0;
+
+                    $p_amount = 0;
 					if($_POST['other_cur_paid'] && $cur_rate->rate){
 						$p_amount = $_POST['other_cur_paid'] / $cur_rate->rate;
 					}
@@ -711,18 +719,21 @@ class Pos extends MY_Controller
 							'pos_paid_other' => $_POST['other_cur_paid'] ? $_POST['other_cur_paid'] : 0
 						);
 					}
+
 					$pp[] = $amount;
 					if($_POST['paid_by'][$r] != 'deposit' && $_POST['paid_by'][$r] != 'depreciation') {
-						$this->site->updateReference('sp');
+
+                        if($payment[0]['amount'] != 0){
+                            $this->site->updateReference('sp');
+                        }
 					}
-//$this->erp->print_arrays($payment);
                 }
 				
                 if (!empty($pp)) {
                     $paid = array_sum($pp);
-if($this->input->post('other_cur_paid') && $cur_rate->rate){
-   $paid = $paid + ($this->input->post('other_cur_paid')/$cur_rate->rate);
-}
+                    if($this->input->post('other_cur_paid') && $cur_rate->rate){
+                       $paid = $paid + ($this->input->post('other_cur_paid')/$cur_rate->rate);
+                    }
 
                 } else {
                     $paid = 0;
@@ -2146,6 +2157,7 @@ if($this->input->post('other_cur_paid') && $cur_rate->rate){
             } else {
                 $date = date('Y-m-d H:i:s');
             }
+			
 			$sale_id = $this->input->post('sale_id');
 			$sale_ref = $this->sales_model->getSaleById($sale_id)->reference_no; 
 			$paid_by = $this->input->post('paid_by');
@@ -2186,7 +2198,8 @@ if($this->input->post('other_cur_paid') && $cur_rate->rate){
 				'biller_id'	=> $biller_id,
 				'deposit_customer_id' => $this->input->post('customer'),
 				'add_payment' => '1',
-				'bank_account' => $this->input->post('bank_account')
+				'bank_account' => $this->input->post('bank_account'),
+				'clear_customer_deposit'=> 0
             );
 			
 			//$this->erp->print_arrays($payment);
@@ -2736,6 +2749,111 @@ if($this->input->post('other_cur_paid') && $cur_rate->rate){
         }
 
     }
+	
+	public function clear_customer_deposit($id){
+		if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
+		
+        $this->form_validation->set_rules('reference_no', lang("reference_no"), 'trim|required|is_unique[payments.reference_no]');
+		if($this->form_validation->run() == true){
+			
+			if ($this->Owner || $this->Admin) {
+                $date = $this->erp->fld(trim($this->input->post('date')));
+            } else {
+                $date = date('Y-m-d H:i:s');
+            }
+			
+			$suppliers_id = $this->input->post('suppliers_id');
+			$biller_id = $this->input->post('biller');
+			$reference_no_o = $this->input->post('reference_no_o');
+			$paid_o = $this->input->post('paid_o');
+			$amount_o = $this->input->post('amount_o');
+			
+			$refer = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('sp',$biller_id);
+			
+            $payment = array(
+                'date' => $date,
+				'biller_id' => $biller_id,
+                'sale_id' => $this->input->post('sale_id'),
+                'reference_no' => $refer,
+                'amount' => $this->input->post('amount-paid'),
+                'paid_by' => 'cash',
+                'cheque_no' => $this->input->post('cheque_no'),
+                'cc_no' => $this->input->post('pcc_no'),
+                'cc_holder' => $this->input->post('pcc_holder'),
+                'cc_month' => $this->input->post('pcc_month'),
+                'cc_year' => $this->input->post('pcc_year'),
+                'cc_type' => $this->input->post('pcc_type'),
+                'note' => strip_tags($this->input->post('note')),
+                'created_by' => $this->session->userdata('user_id'),
+				'bank_account' => $this->input->post('bank_account'),
+                'type' => 'sent',
+				'clear_customer_deposit'=> 2
+            );
+			
+			if ($this->form_validation->run() == true && $this->pos_model->clear_customer_deposit($payment)) {
+				$tran_no = $this->pos_model->getTranNo();
+				$default_sale_deposit = $this->pos_model->ACC_SALE_DEPOSIT();
+				$reference_no = ($this->input->post('reference')? $this->input->post('reference') : $this->site->getReference('jr',$payment['biller_id']));
+				
+				$data[] =  array(
+						'tran_type' => 'JOURNAL',
+						'tran_no' => $tran_no,
+						'account_code' => $default_sale_deposit,
+						'tran_date' => $date,
+						'reference_no' => $reference_no,
+						'amount' => -1 * floatval($this->input->post('amount-paid')),
+						'biller_id' => $payment['biller_id'],
+						'created_by' => $this->session->userdata('user_id'),
+						'created_name' => $this->input->post('customer_id'),
+						'created_type'=> $this->input->post('customer')
+						);
+				$data[] =  array(
+						'tran_type' => 'JOURNAL',
+						'tran_no' => $tran_no,
+						'account_code' => $this->input->post('bank_account'),
+						'tran_date' => $date,
+						'reference_no' => $reference_no,
+						'amount' => $this->input->post('amount-paid'),
+						'biller_id' => $payment['biller_id'],
+						'created_by' => $this->session->userdata('user_id'),
+						'created_name' => $this->input->post('customer_id'),
+						'created_type'=> $this->input->post('customer')
+						);
+				
+				
+				$this->accounts_model->addJournal($data);
+				$this->session->set_flashdata('message', lang("customer_deposit_clear"));
+				redirect('pos/sales');
+			}
+			
+		}else{
+			
+		
+			if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')) {
+				$biller_id = $this->site->get_setting()->default_biller;
+				$this->data['biller_id'] = $biller_id;
+				$this->data['reference_no'] = $this->site->getReference('jr',$biller_id);
+				
+			}else{
+				
+				$biller_id = $this->session->userdata("biller_id");
+				$this->data['biller_id'] = $biller_id;
+				$this->data['reference_no'] = $this->site->getReference('jr',$biller_id);
+			}
+			
+			$this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+			$sale = $this->pos_model->getSaleById($id);
+			$this->data['inv'] = $sale;
+			$this->data['modal_js'] = $this->site->modal_js();
+			$this->data['customers'] = $this->site->getCustomers();
+			$this->data['bankAccounts'] =  $this->site->getAllBankAccounts();
+			$this->load->view($this->theme . 'pos/clear_customer_deposit', $this->data);
+		}
+			
+	}
+	
 	
 	
 	

@@ -18,6 +18,7 @@ class Purchases extends MY_Controller
         $this->load->model('purchases_model');
         $this->load->model('companies_model');
         $this->load->model('sales_model');
+        $this->load->model('accounts_model');
 		$this->load->model('sale_order_model');
         $this->load->model('products_model');
         $this->load->model('quotes_model');
@@ -297,7 +298,7 @@ class Purchases extends MY_Controller
 
         //$edit_opening_ap_link = anchor('purchases/edit_opening_ap/$1', '<i class="fa fa-edit"></i> ' . lang('edit_purchase'), 'data-toggle="modal" data-target="#myModal"');
         $edit_link = anchor('purchases/edit/$1', '<i class="fa fa-edit"></i> ' . lang('edit_purchase'));
-		$clear_supplier_deposit = anchor('purchases/clear_supplier_deposit/$1', '<i class="fa fa-eraser"></i> ' . lang('clear_supplier_deposit'));
+		$clear_supplier_deposit = anchor('purchases/clear_supplier_deposit/$1', '<i class="fa fa-eraser"></i> ' . lang('clear_supplier_deposit'),'data-toggle="modal" data-target="#myModal"');
         $pdf_link = anchor('purchases/pdf/$1', '<i class="fa fa-file-pdf-o"></i> ' . lang('download_pdf'));
         $print_barcode = anchor('products/print_barcodes/?purchase=$1', '<i class="fa fa-print"></i> ' . lang('print_barcodes'));
 		$purchase_return = anchor('purchases/return_purchase/$1', '<i class="fa fa-angle-double-left"></i> ' . lang('return_purchase'));
@@ -398,66 +399,116 @@ class Purchases extends MY_Controller
         echo $this->datatables->generate();
     }
 	public function clear_supplier_deposit($id){
+		if ($this->input->get('id')) {
+            $id = $this->input->get('id');
+        }
 		
-		$purchase = $this->purchases_model->getPurchaseByID($id);
-		$purchase_payment = $this->purchases_model->getPaymentByPurchaseID($id);
-		
-		if($purchase->paid > $purchase->grand_total){
-			$supplier_deps = $purchase->grand_total - $purchase->paid;
-			$ref = floatval(substr($purchase_payment->reference_no, -1))+1;
-			$ref1 = substr($purchase_payment->reference_no,0,strlen($purchase_payment->reference_no)-1);
-			$ref2 = $ref1.$ref;
+        $this->form_validation->set_rules('reference_no', lang("reference_no"), 'trim|required|is_unique[payments.reference_no]');
+		if($this->form_validation->run() == true){
 			
-			$reference = $this->site->getReference('pp')?$this->site->getReference('pp'):$ref2;
+			if ($this->Owner || $this->Admin) {
+                $date = $this->erp->fld(trim($this->input->post('date')));
+            } else {
+                $date = date('Y-m-d H:i:s');
+            }
 			
-			$account_setting = $this->purchases_model->getDefaultSupplierDeposit();
-			$company = $this->site->getCompanyByID($purchase->supplier_id);
-			$amount = abs($supplier_deps);
+			$suppliers_id = $this->input->post('suppliers_id');
+			$biller_id = $this->input->post('biller');
+			$reference_no_o = $this->input->post('reference_no_o');
+			$paid_o = $this->input->post('paid_o');
+			$amount_o = $this->input->post('amount_o');
 			
-			$cdata = array(
-                'deposit_amount' => $company->deposit_amount+$amount
-            );
+			$refer = $this->input->post('reference_no') ? $this->input->post('reference_no') : $this->site->getReference('pp',$biller_id);
 			
-			$data = array(
-                'reference' => $reference,
-                'date' => date('Y-m-d H:i:s'),
-                'amount' => $amount,
+            $payment = array(
+                'date' => $date,
+				'biller_id' => $biller_id,
+                'purchase_id' => $this->input->post('purchase_id'),
+                'reference_no' => $refer,
+                'amount' => $this->input->post('amount-paid'),
                 'paid_by' => 'cash',
-                'note' => $purchase_payment->note,
-                'company_id' => $purchase->supplier_id,
+                'cheque_no' => $this->input->post('cheque_no'),
+                'cc_no' => $this->input->post('pcc_no'),
+                'cc_holder' => $this->input->post('pcc_holder'),
+                'cc_month' => $this->input->post('pcc_month'),
+                'cc_year' => $this->input->post('pcc_year'),
+                'cc_type' => $this->input->post('pcc_type'),
+                'note' => strip_tags($this->input->post('note')),
                 'created_by' => $this->session->userdata('user_id'),
-				'bank_code' => $purchase_payment->bank_account,
-				'biller_id' => $purchase->biller_id,
+				'bank_account' => $this->input->post('bank_account'),
+                'type' => 'sent',
+				'clear_supplier_deposit'=>2
             );
 			
-			$payment = array(
-                'date' => date('Y-m-d H:i:s'),
-				'biller_id' => $purchase->biller_id,
-                'purchase_id' => $purchase->id,
-                'reference_no' => $reference,
-                'amount' =>  $supplier_deps,
-                'paid_by' => $purchase_payment->paid_by,
-                'cheque_no' => $purchase_payment->cheque_no,
-                'cc_no' => $purchase_payment->cc_no,
-                'cc_holder' => $purchase_payment->cc_holder,
-                'cc_month' => $purchase_payment->cc_month,
-                'cc_year' => $purchase_payment->cc_year,
-                'cc_type' => $purchase_payment->cc_type,
-                'note' => $purchase_payment->note,
-                'created_by' => $this->session->userdata('user_id'),
-				'bank_account' => $purchase_payment->bank_account,
-                'type' => 'received',
-				'clear_supplier_deposit' => 1
-            );
+			//$this->purchases_model->clear_supplier_deposit($payment)
 			
-			
-			
-			if($this->companies_model->clearSupplierDeposit($data, $cdata,$payment,$ref2)) {
-				$this->session->set_flashdata('message', lang("supplier_deposit_cleared"));
-				redirect("purchases");
+			if ($this->input->post('add_payment') && $this->form_validation->run() == true && $this->purchases_model->clear_supplier_deposit($payment)) {
+				
+				$tran_no = $this->purchases_model->getTranNo();
+				$default_purchase_deposit = $this->purchases_model->ACC_PURCHASE_DEPOSIT();
+				$reference_no = ($this->input->post('reference')? $this->input->post('reference') : $this->site->getReference('jr',$payment['biller_id']));
+				
+				$data[] =  array(
+						'tran_type' => 'JOURNAL',
+						'tran_no' => $tran_no,
+						'account_code' => $default_purchase_deposit,
+						'tran_date' => $date,
+						'reference_no' => $reference_no,
+						'amount' => $this->input->post('amount-paid'),
+						'biller_id' => $payment['biller_id'],
+						'created_by' => $this->session->userdata('user_id'),
+						'created_name' => $this->input->post('suppliers_id'),
+						'created_type'=> $this->input->post('suppliers_name')
+						);
+				$data[] =  array(
+						'tran_type' => 'JOURNAL',
+						'tran_no' => $tran_no,
+						'account_code' => $this->input->post('bank_account'),
+						'tran_date' => $date,
+						'reference_no' => $reference_no,
+						'amount' => -1 * floatval($this->input->post('amount-paid')),
+						'biller_id' => $payment['biller_id'],
+						'created_by' => $this->session->userdata('user_id'),
+						'created_name' => $this->input->post('suppliers_id'),
+						'created_type'=> $this->input->post('suppliers_name')
+						);
+				
+				
+				$this->accounts_model->addJournal($data);
+				$this->session->set_flashdata('message', lang("supplier_deposit_clear"));
+				redirect('purchases');
 			}
+			
+		}else{
+			
+		
+			if ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')) {
+				$biller_id = $this->site->get_setting()->default_biller;
+				$this->data['biller_id'] = $biller_id;
+				$this->data['reference_no'] = $this->site->getReference('jr',$biller_id);
+				
+			}else{
+				
+				$biller_id = $this->session->userdata("biller_id");
+				$this->data['biller_id'] = $biller_id;
+				$this->data['reference_no'] = $this->site->getReference('jr',$biller_id);
+			}
+			
+			$this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+			$purchase = $this->purchases_model->getPurchaseByID($id);
+			$this->data['inv'] = $purchase;
+			$this->data['modal_js'] = $this->site->modal_js();
+			$this->data['suppliers'] = $this->site->getSuppliers();
+			$this->data['bankAccounts'] =  $this->site->getAllBankAccounts();
+			$this->load->view($this->theme . 'purchases/clear_supplier_deposit', $this->data);
 		}
+			
 	}
+	
+	
+	
+	
+	
 	public function return_purchase($id = null)
     {
         $this->erp->checkPermissions('return_list',null,'purchases');
@@ -2169,8 +2220,7 @@ class Purchases extends MY_Controller
         if ($this->form_validation->run() == true)
         {
             if ($this->Owner || $this->Admin) {
-              //  $date = $this->erp->fld(trim($this->input->post('date')));
-                $date = $date = date('Y-m-d H:i:s');
+				$date = $this->erp->fld(trim($this->input->post('date')));
             } else {
                 $date = date('Y-m-d H:i:s');
             }
@@ -2585,6 +2635,7 @@ class Purchases extends MY_Controller
 							'customer_id' => $this->input->post('customers'),
 							);
 				}
+				
 				for($i=0;$i<count($account_code);$i++) {
 					
 					if($debit[$i]>0) {
@@ -2986,7 +3037,7 @@ class Purchases extends MY_Controller
             $this->data['unit'] = $this->purchases_model->getUnits();
 
 			$this->data['customers'] = $this->site->getCustomers();
-			$this->data['invoices'] = $this->site->getCustomerInvoices();
+			
             $this->data['customer_invoices'] = $this->site->getCustomerInvoices();
 
             $this->data['type'] = $this->purchases_model->getAlltypes();
@@ -4560,14 +4611,15 @@ class Purchases extends MY_Controller
         }
 		$type_exp = $this->input->post('expance');
         $this->form_validation->set_message('is_natural_no_zero', $this->lang->line("no_zero_required"));
-        //$this->form_validation->set_rules('reference_no', $this->lang->line("ref_no"), 'required');
+        
 		if($type_exp == "po"){
 			$this->form_validation->set_rules('warehouse', $this->lang->line("warehouse"), 'required|is_natural_no_zero');
 		}
+		
         $this->form_validation->set_rules('supplier', $this->lang->line("supplier"), 'required');
 		$this->form_validation->set_rules('biller', $this->lang->line("biller"), 'required');
-		
 		$this->session->unset_userdata('csrf_token');
+		
         if ($this->form_validation->run() == true) {
             $quantity 		= "quantity";
             $product 		= "product";
@@ -4595,6 +4647,9 @@ class Purchases extends MY_Controller
             $supplier_details = $this->site->getCompanyByID($supplier_id);
             $supplier = $supplier_details->company != '-'  ? $supplier_details->company : $supplier_details->name;
             $note = $this->erp->clear_tags($this->input->post('note'));
+			$purchase_id = $this->input->post('purchase_id');
+			$debit = $this->input->post('debit');
+			$account_code = $this->input->post('account_section');
 			
 			if($type_exp=='po'){
 				
@@ -5116,7 +5171,8 @@ class Purchases extends MY_Controller
 					
 			}	
 		
-		
+			//$this->erp->print_arrays("0");
+			
             if ($date) {
                 $data['date'] = $date;
             }
@@ -5212,6 +5268,76 @@ class Purchases extends MY_Controller
                 $payment = array();
             }
 		  
+			// reset supplier deposit 
+			$supplier_deposit_rec = $this->purchases_model->getDepositByPurchaseId($purchase_id);
+			$purchase_deposit_payment = $this->purchases_model->getPaymentDepositByPurchaseID($supplier_deposit_rec->id);
+			$purchase_deposit_payment_ref = $purchase_deposit_payment->reference_no;
+			$gl_trans_supplier_deposit = $this->purchases_model->getGlSupplierDeposit($purchase_deposit_payment->reference_no);
+			
+			if(!empty($supplier_deposit_rec) && !empty($purchase_deposit_payment) && !empty($gl_trans_supplier_deposit)){
+				$this->purchases_model->reset_supplier_deposit($purchase_id,$purchase_deposit_payment->reference_no,$supplier_deposit_rec->id);
+			}
+			
+			
+			if($type_exp =='exp'){
+				$total_debit = 0;
+				$purchase = $this->purchases_model->getPurchaseByID($purchase_id);
+				$purchase_payment = $this->purchases_model->getPaymentByPurchaseID($purchase_id);
+				
+				for($i=0;$i<count($account_code);$i++) {
+					if($debit[$i]>0) {
+						$total_debit  += $debit[$i];
+					}
+				}
+				
+				if($purchase_payment->amount > $total_debit){
+					$supplier_deps = $purchase_payment->amount - $total_debit;
+					$reference = $purchase_deposit_payment_ref ? $purchase_deposit_payment_ref : $this->site->getReference('pp');
+					
+					$account_setting = $this->purchases_model->getDefaultSupplierDeposit();
+					$company = $this->site->getCompanyByID($purchase->supplier_id);
+					$amount = abs($supplier_deps);
+					
+					$cdata = array(
+						'deposit_amount' => $company->deposit_amount+$amount
+					);
+					
+					$supplier_deposit = array(
+						'reference' => $reference,
+						'date' => date('Y-m-d H:i:s'),
+						'amount' => $amount,
+						'paid_by' => 'cash',
+						'note' => $purchase_payment->note,
+						'company_id' => $purchase->supplier_id,
+						'created_by' => $this->session->userdata('user_id'),
+						'bank_code' => $purchase_payment->bank_account,
+						'biller_id' => $purchase->biller_id,
+						'po_id'		=> $purchase->id
+					);
+					
+					$supplier_payment_deposit = array(
+						'date' => date('Y-m-d H:i:s'),
+						'biller_id' => $purchase->biller_id,
+						'reference_no' => $reference,
+						'amount' =>  $amount,
+						'paid_by' => $purchase_payment->paid_by,
+						'cheque_no' => $purchase_payment->cheque_no,
+						'cc_no' => $purchase_payment->cc_no,
+						'cc_holder' => $purchase_payment->cc_holder,
+						'cc_month' => $purchase_payment->cc_month,
+						'cc_year' => $purchase_payment->cc_year,
+						'cc_type' => $purchase_payment->cc_type,
+						'note' => $purchase_payment->note,
+						'created_by' => $this->session->userdata('user_id'),
+						'bank_account' => $purchase_payment->bank_account,
+						'type' => 'received',
+						'clear_supplier_deposit' => 1
+					);
+					
+					
+					$this->companies_model->create_supplier_deposit($supplier_deposit, $cdata,$supplier_payment_deposit);
+				}
+			}
 			
         }
 		
@@ -6597,6 +6723,7 @@ class Purchases extends MY_Controller
             } else {
                 $date = date('Y-m-d H:i:s');
             }
+			
 			$suppliers_id = $this->input->post('suppliers_id');
 			$biller_id = $this->input->post('biller');
 			$reference_no_o = $this->input->post('reference_no_o');
@@ -6626,7 +6753,7 @@ class Purchases extends MY_Controller
                 'created_by' => $this->session->userdata('user_id'),
 				'bank_account' => $this->input->post('bank_account'),
                 'type' => 'sent',
-				'clear_supplier_deposit'=>0
+				'clear_supplier_deposit'=> 0
             );
 			
 			//$this->erp->print_arrays($payment); 
