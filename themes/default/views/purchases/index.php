@@ -426,7 +426,6 @@
                     <?php echo form_close(); ?>
 
                 </div>
-
                 <div class="clearfix"></div>
                 <div class="table-responsive">
                     <table id="POData" cellpadding="0" cellspacing="0" border="0"

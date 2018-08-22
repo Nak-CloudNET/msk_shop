@@ -376,7 +376,6 @@ class Purchases extends MY_Controller
         } elseif ($this->Customer) {
             $this->datatables->where('customer_id', $this->session->userdata('user_id'));
         }
-		
 		if ($user_query) {
 			$this->datatables->where('purchases.created_by', $user_query);
 		}
