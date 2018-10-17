@@ -240,7 +240,7 @@
         localStorage.setItem('powarehouse', '<?=$inv->warehouse_id?>');
 		localStorage.setItem('edit_status', '<?=$edit_status?>');
         localStorage.setItem('postatus', '<?=$inv->status?>');
-        localStorage.setItem('ponote', '<?= str_replace(array("'", ""), "&#039", $this->erp->decode_html($inv->note)); ?>');
+        localStorage.setItem('ponote', '<?= str_replace(array("'", "","\r\n"), "&#039", $this->erp->decode_html($inv->note)); ?>');
         localStorage.setItem('podiscount', '<?=$inv->order_discount_id?>');
         localStorage.setItem('potax2', '<?=$inv->order_tax_id?>');
         localStorage.setItem('poshipping', '<?=$inv->shipping?>');
